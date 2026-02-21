@@ -9,6 +9,7 @@ import {
   Activity,
   Menu,
   LogOut,
+  Tag,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "../../lib/utils";
@@ -16,6 +17,7 @@ import { cn } from "../../lib/utils";
 const navigation = [
   { name: "Dashboard", icon: LayoutDashboard },
   { name: "Docs", icon: FileText },
+  { name: "Tagi", icon: Tag },
   { name: "Team", icon: Users },
   { name: "Analytics", icon: Activity },
   { name: "Settings", icon: Settings },
