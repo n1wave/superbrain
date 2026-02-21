@@ -5,7 +5,7 @@ import { getApiConfig, toggleApiConfig } from '../../lib/docs';
 export function TeamView() {
     const [apiEnabled, setApiEnabled] = useState(true);
     const [isApiLoading, setIsApiLoading] = useState(true);
-    const [copied, setCopied] = useState(false);
+    const [copied, setCopied] = useState<string | false>(false);
 
     useEffect(() => {
         getApiConfig().then(config => {
@@ -20,10 +20,10 @@ export function TeamView() {
         await toggleApiConfig(newState).catch(console.error);
     };
 
-    const handleCopy = () => {
-        navigator.clipboard.writeText(`curl -X GET "https://[TWOJA-VERCEL-DOMENA].vercel.app/api/documents" \\
+    const handleCopy = (endpointUrl: string, type: string) => {
+        navigator.clipboard.writeText(`curl -X GET "https://[TWOJA-VERCEL-DOMENA].vercel.app${endpointUrl}" \\
      -H "Authorization: Bearer N1_SUPER_SECRET_KEY_123"`);
-        setCopied(true);
+        setCopied(type);
         setTimeout(() => setCopied(false), 2000);
     };
 
@@ -45,27 +45,59 @@ export function TeamView() {
                     </div>
                     <div className="p-6 flex-1 overflow-auto">
                         <div className="space-y-6">
-                            <div>
-                                <h4 className="text-brand-turquoise font-mono text-sm mb-1.5 font-medium">Endpoint: GET /api/documents</h4>
-                                <p className="text-white/60 text-sm leading-relaxed">Pobiera całą listę dokumentów w ujednoliconym formacie JSON.</p>
-                            </div>
-
-                            <div>
-                                <div className="flex items-center justify-between mb-3">
-                                    <h4 className="text-brand-sea font-mono text-sm font-medium">Przykładowe zapytanie (cURL):</h4>
-                                    <button
-                                        onClick={handleCopy}
-                                        className="p-1.5 rounded-md hover:bg-brand-midnight text-white/50 hover:text-white transition-all ring-1 ring-transparent hover:ring-brand-midnight/50"
-                                        title="Kopiuj do schowka"
-                                    >
-                                        {copied ? <CheckCircle2 className="w-4 h-4 text-brand-turquoise" /> : <Copy className="w-4 h-4" />}
-                                    </button>
+                            <div className="space-y-6">
+                                {/* Endpoint 1 */}
+                                <div>
+                                    <h4 className="text-brand-turquoise font-mono text-sm mb-1.5 font-medium">1. Endpoint: GET /api/documents</h4>
+                                    <p className="text-white/60 text-[13px] leading-relaxed mb-3">Pobiera całą listę dokumentów w ujednoliconym formacie JSON wraz z ich pełną treścią.</p>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <h4 className="text-brand-sea font-mono text-xs font-medium">Przykładowe zapytanie (cURL):</h4>
+                                        <button onClick={() => handleCopy('/api/documents', 'all')} className="p-1 rounded-md hover:bg-brand-midnight text-white/50 hover:text-white transition-all ring-1 ring-transparent hover:ring-brand-midnight/50" title="Kopiuj do schowka">
+                                            {copied === 'all' ? <CheckCircle2 className="w-3.5 h-3.5 text-brand-turquoise" /> : <Copy className="w-3.5 h-3.5" />}
+                                        </button>
+                                    </div>
+                                    <div className="bg-black p-3 rounded-lg border border-brand-midnight shadow-inner">
+                                        <pre className="text-white/80 text-[12px] font-mono whitespace-pre-wrap break-all leading-relaxed">
+                                            <code>curl -X GET "https://[TWOJA-VERCEL-DOMENA].vercel.app/api/documents" \
+                                                -H "Authorization: <span className="text-brand-orange">Bearer N1_SUPER...</span>"</code>
+                                        </pre>
+                                    </div>
                                 </div>
-                                <div className="bg-black p-4 rounded-lg border border-brand-midnight shadow-inner">
-                                    <pre className="text-white/80 text-[13px] font-mono whitespace-pre-wrap break-all leading-relaxed">
-                                        <code>curl -X GET "https://[TWOJA-VERCEL-DOMENA].vercel.app/api/documents" \
-                                            -H "Authorization: <span className="text-brand-orange">Bearer N1_SUPER_SECRET_KEY_123</span>"</code>
-                                    </pre>
+
+                                {/* Endpoint 2 */}
+                                <div className="pt-4 border-t border-brand-midnight/50">
+                                    <h4 className="text-brand-turquoise font-mono text-sm mb-1.5 font-medium">2. Endpoint: GET /api/documents-light</h4>
+                                    <p className="text-white/60 text-[13px] leading-relaxed mb-3">Pobiera listę dokumentów <strong>bez ich pełnej treści</strong>. Idealny do szybkiego pobrania spisu treści i oszczędzania transferu.</p>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <h4 className="text-brand-sea font-mono text-xs font-medium">Przykładowe zapytanie (cURL):</h4>
+                                        <button onClick={() => handleCopy('/api/documents-light', 'light')} className="p-1 rounded-md hover:bg-brand-midnight text-white/50 hover:text-white transition-all ring-1 ring-transparent hover:ring-brand-midnight/50" title="Kopiuj do schowka">
+                                            {copied === 'light' ? <CheckCircle2 className="w-3.5 h-3.5 text-brand-turquoise" /> : <Copy className="w-3.5 h-3.5" />}
+                                        </button>
+                                    </div>
+                                    <div className="bg-black p-3 rounded-lg border border-brand-midnight shadow-inner">
+                                        <pre className="text-white/80 text-[12px] font-mono whitespace-pre-wrap break-all leading-relaxed">
+                                            <code>curl -X GET "https://[TWOJA-VERCEL-DOMENA].vercel.app/api/documents-light" \
+                                                -H "Authorization: <span className="text-brand-orange">Bearer N1_SUPER...</span>"</code>
+                                        </pre>
+                                    </div>
+                                </div>
+
+                                {/* Endpoint 3 */}
+                                <div className="pt-4 border-t border-brand-midnight/50">
+                                    <h4 className="text-brand-turquoise font-mono text-sm mb-1.5 font-medium">3. Endpoint: GET /api/document?id=...</h4>
+                                    <p className="text-white/60 text-[13px] leading-relaxed mb-3">Pobiera pełne dane pojedynczego dokumentu na podstawie jego systemowego ID.</p>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <h4 className="text-brand-sea font-mono text-xs font-medium">Przykładowe zapytanie (cURL):</h4>
+                                        <button onClick={() => handleCopy('/api/document?id=ID_Z_BAZY', 'doc')} className="p-1 rounded-md hover:bg-brand-midnight text-white/50 hover:text-white transition-all ring-1 ring-transparent hover:ring-brand-midnight/50" title="Kopiuj do schowka">
+                                            {copied === 'doc' ? <CheckCircle2 className="w-3.5 h-3.5 text-brand-turquoise" /> : <Copy className="w-3.5 h-3.5" />}
+                                        </button>
+                                    </div>
+                                    <div className="bg-black p-3 rounded-lg border border-brand-midnight shadow-inner">
+                                        <pre className="text-white/80 text-[12px] font-mono whitespace-pre-wrap break-all leading-relaxed">
+                                            <code>curl -X GET "https://[TWOJA-VERCEL-DOMENA].vercel.app/api/document?id=ID_Z_BAZY" \
+                                                -H "Authorization: <span className="text-brand-orange">Bearer N1_SUPER...</span>"</code>
+                                        </pre>
+                                    </div>
                                 </div>
                             </div>
 
