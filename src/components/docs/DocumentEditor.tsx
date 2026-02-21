@@ -73,7 +73,7 @@ export function DocumentEditor({
     // ── Metric Editing state ──
     const [editingDocMetric, setEditingDocMetric] = useState<keyof NonNullable<DocumentBase['docMetrics']> | null>(null);
     const [editingDocMetricValue, setEditingDocMetricValue] = useState<string>('');
-    const [editingChatMetric, setEditingChatMetric] = useState<keyof ChatAnalysis['metrics'] | null>(null);
+    const [editingChatMetric, setEditingChatMetric] = useState<keyof NonNullable<ChatAnalysis['metrics']> | null>(null);
     const [editingChatMetricValue, setEditingChatMetricValue] = useState<string>('');
 
     // ── Track unsaved changes ──
@@ -825,33 +825,33 @@ export function DocumentEditor({
                                     {
                                         id: 'timeSavings' as const,
                                         label: 'Zaoszczędzony czas',
-                                        score: chatAnalysis.metrics.timeSavings,
+                                        score: chatAnalysis.metrics!.timeSavings,
                                         weight: '×0.4',
-                                        note: chatAnalysis.metrics.timeSavingsNote,
+                                        note: chatAnalysis.metrics!.timeSavingsNote,
                                         desc: 'ile godzin lub dni musiałbyś poświęcić na samodzielne szukanie i testowanie, gdybyś nie miał pomocy AI?',
                                     },
                                     {
                                         id: 'completeness' as const,
                                         label: 'Gotowość do użycia',
-                                        score: chatAnalysis.metrics.completeness,
+                                        score: chatAnalysis.metrics!.completeness,
                                         weight: '×0.3',
-                                        note: chatAnalysis.metrics.completenessNote,
+                                        note: chatAnalysis.metrics!.completenessNote,
                                         desc: 'czy dostałeś finalne gotowe rozwiązanie podane na tacy, czy tylko ogólną wskazówkę do dalszej pracy?',
                                     },
                                     {
                                         id: 'criticality' as const,
                                         label: 'Waga problemu',
-                                        score: chatAnalysis.metrics.criticality,
+                                        score: chatAnalysis.metrics!.criticality,
                                         weight: '×0.2',
-                                        note: chatAnalysis.metrics.criticalityNote,
+                                        note: chatAnalysis.metrics!.criticalityNote,
                                         desc: 'czy ten problem całkowicie wstrzymywał twoją pracę, czy była to luźna ciekawostka lub opcjonalna poprawka?',
                                     },
                                     {
                                         id: 'transferability' as const,
                                         label: 'Przydatność na przyszłość',
-                                        score: chatAnalysis.metrics.transferability,
+                                        score: chatAnalysis.metrics!.transferability,
                                         weight: '×0.1',
-                                        note: chatAnalysis.metrics.transferabilityNote,
+                                        note: chatAnalysis.metrics!.transferabilityNote,
                                         desc: 'czy wypracowana tu wiedza przyda się wielokrotnie w innych projektach, czy to jednorazowa akcja?',
                                     },
                                 ].map(m => (
@@ -879,9 +879,9 @@ export function DocumentEditor({
                                                     />
                                                     <button
                                                         onClick={() => {
-                                                            setChatAnalysis(prev => prev ? {
+                                                            setChatAnalysis(prev => prev && prev.metrics ? {
                                                                 ...prev,
-                                                                metrics: { ...prev.metrics, [m.id]: Number(editingChatMetricValue) || 0 }
+                                                                metrics: { ...prev.metrics, [m.id]: Number(editingChatMetricValue) || 0 } as NonNullable<ChatAnalysis['metrics']>
                                                             } : prev);
                                                             setEditingChatMetric(null);
                                                         }}
@@ -917,13 +917,13 @@ export function DocumentEditor({
                                             <BarChart2 className="h-4 w-4 text-brand-turquoise" /> Wartość chatu (ROI)
                                         </h3>
                                         <button
-                                            onClick={() => { setEditingChatMetric('roi'); setEditingChatMetricValue(String(chatAnalysis.metrics.roi.toFixed(1))); }}
+                                            onClick={() => { setEditingChatMetric('roi'); setEditingChatMetricValue(String(chatAnalysis.metrics!.roi.toFixed(1))); }}
                                             className="text-brand-sea/50 hover:text-brand-sea p-1"
                                         >
                                             <Pencil className="w-3 h-3" />
                                         </button>
                                     </div>
-                                    <p className="text-xs text-brand-navy/50">{chatAnalysis.metrics.roiBreakdown}</p>
+                                    <p className="text-xs text-brand-navy/50">{chatAnalysis.metrics!.roiBreakdown}</p>
                                 </div>
                                 <div className="shrink-0 text-right">
                                     {editingChatMetric === 'roi' ? (
@@ -936,9 +936,9 @@ export function DocumentEditor({
                                             />
                                             <button
                                                 onClick={() => {
-                                                    setChatAnalysis(prev => prev ? {
+                                                    setChatAnalysis(prev => prev && prev.metrics ? {
                                                         ...prev,
-                                                        metrics: { ...prev.metrics, roi: Number(editingChatMetricValue) || 0 }
+                                                        metrics: { ...prev.metrics, roi: Number(editingChatMetricValue) || 0 } as NonNullable<ChatAnalysis['metrics']>
                                                     } : prev);
                                                     setEditingChatMetric(null);
                                                 }}
@@ -952,10 +952,10 @@ export function DocumentEditor({
                                         </div>
                                     ) : (
                                         <>
-                                            <span className="text-4xl font-bold text-brand-sea">{chatAnalysis.metrics.roi.toFixed(1)}</span>
+                                            <span className="text-4xl font-bold text-brand-sea">{chatAnalysis.metrics!.roi.toFixed(1)}</span>
                                             <span className="text-brand-navy/40 text-lg ml-1">/10</span>
                                             <div className="w-40 bg-brand-sea/10 rounded-full h-2 mt-1">
-                                                <div className="bg-gradient-to-r from-brand-turquoise to-brand-sea rounded-full h-2 transition-all" style={{ width: `${chatAnalysis.metrics.roi * 10}%` }} />
+                                                <div className="bg-gradient-to-r from-brand-turquoise to-brand-sea rounded-full h-2 transition-all" style={{ width: `${chatAnalysis.metrics!.roi * 10}%` }} />
                                             </div>
                                         </>
                                     )}

@@ -4,6 +4,7 @@ import { DashboardOverview } from "./components/dashboard/DashboardOverview";
 import { DocsView } from "./components/docs/DocsView";
 import type { DocumentEditorHandle } from "./components/docs/DocumentEditor";
 import { TagsView } from "./components/docs/TagsView";
+import { TeamView } from "./components/team/TeamView";
 import { analytics } from "./lib/firebase";
 import { AlertCircle } from "lucide-react";
 
@@ -87,6 +88,7 @@ function App() {
       {currentView === "Tagi" && (
         <TagsView onNavigateToDocsWithTag={handleNavigateToDocsWithTag} />
       )}
+      {currentView === "Team" && <TeamView />}
 
       {/* Unsaved Changes Warning Modal */}
       {pendingNavigation && (

@@ -1,5 +1,28 @@
-import { collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, query, orderBy, updateDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, query, orderBy, updateDoc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "./firebase";
+
+// API Config
+const SETTINGS_COLLECTION = "settings";
+const API_CONFIG_DOC = "api_config";
+
+export interface ApiConfig {
+    isEnabled: boolean;
+}
+
+export const getApiConfig = async (): Promise<ApiConfig> => {
+    const docRef = doc(db, SETTINGS_COLLECTION, API_CONFIG_DOC);
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) {
+        await setDoc(docRef, { isEnabled: true });
+        return { isEnabled: true };
+    }
+    return docSnap.data() as ApiConfig;
+};
+
+export const toggleApiConfig = async (isEnabled: boolean): Promise<void> => {
+    const docRef = doc(db, SETTINGS_COLLECTION, API_CONFIG_DOC);
+    await setDoc(docRef, { isEnabled }, { merge: true });
+};
 
 export interface DocumentBase {
     id?: string;
