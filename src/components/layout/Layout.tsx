@@ -5,7 +5,7 @@ import {
   Search,
   Settings,
   Users,
-  CreditCard,
+  FileText,
   Activity,
   Menu,
   LogOut,
@@ -14,79 +14,88 @@ import { useState } from "react";
 import { cn } from "../../lib/utils";
 
 const navigation = [
-  { name: "Dashboard", icon: LayoutDashboard, href: "#", current: true },
-  { name: "Team", icon: Users, href: "#", current: false },
-  { name: "Billing", icon: CreditCard, href: "#", current: false },
-  { name: "Analytics", icon: Activity, href: "#", current: false },
-  { name: "Settings", icon: Settings, href: "#", current: false },
+  { name: "Dashboard", icon: LayoutDashboard },
+  { name: "Docs", icon: FileText },
+  { name: "Team", icon: Users },
+  { name: "Analytics", icon: Activity },
+  { name: "Settings", icon: Settings },
 ];
 
 export function Sidebar({
   sidebarOpen,
   setSidebarOpen,
+  currentView,
+  setCurrentView
 }: {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
+  currentView?: string;
+  setCurrentView?: (view: string) => void;
 }) {
   return (
     <>
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-gray-900/80 lg:hidden"
+          className="fixed inset-0 z-40 bg-brand-midnight/80 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-72 bg-white pb-4 sm:max-w-xs sm:pb-6 transition-transform duration-300 ease-in-out lg:static lg:block",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          "fixed inset-y-0 left-0 z-50 w-72 bg-white pb-4 sm:max-w-xs sm:pb-6 transition-transform duration-300 ease-in-out lg:static lg:block border-r border-brand-sea/10 shadow-sm",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
       >
-        <div className="flex h-16 shrink-0 items-center px-6 border-b border-gray-200">
-          <div className="flex items-center gap-2 font-bold text-xl tracking-tight text-indigo-600">
-            <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center">
+        <div className="flex h-16 shrink-0 items-center px-6 border-b border-brand-sea/10">
+          <div className="flex items-center gap-2 font-bold text-xl tracking-tight text-brand-navy">
+            <div className="h-8 w-8 rounded-lg bg-brand-bordeaux flex items-center justify-center">
               <span className="text-white text-lg font-bold">S</span>
             </div>
-            SaaSify
+            SuperBRAIN
           </div>
         </div>
         <nav className="flex flex-1 flex-col mt-6 px-4">
           <ul role="list" className="flex flex-1 flex-col gap-y-7">
             <li>
               <ul role="list" className="-mx-2 space-y-1">
-                {navigation.map((item) => (
-                  <li key={item.name}>
-                    <a
-                      href={item.href}
-                      className={cn(
-                        item.current
-                          ? "bg-gray-50 text-indigo-600"
-                          : "text-gray-700 hover:text-indigo-600 hover:bg-gray-50",
-                        "group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-medium"
-                      )}
-                    >
-                      <item.icon
+                {navigation.map((item) => {
+                  const isCurrent = currentView === item.name;
+                  return (
+                    <li key={item.name}>
+                      <button
+                        onClick={() => setCurrentView && setCurrentView(item.name)}
                         className={cn(
-                          item.current ? "text-indigo-600" : "text-gray-400 group-hover:text-indigo-600",
-                          "h-6 w-6 shrink-0"
+                          isCurrent
+                            ? "bg-brand-navy/5 text-brand-navy"
+                            : "text-brand-midnight hover:text-brand-navy hover:bg-brand-sea/5",
+                          "group flex w-full gap-x-3 rounded-md p-2 text-sm leading-6 font-medium transition-colors text-left",
                         )}
-                        aria-hidden="true"
-                      />
-                      {item.name}
-                    </a>
-                  </li>
-                ))}
+                      >
+                        <item.icon
+                          className={cn(
+                            isCurrent
+                              ? "text-brand-orange"
+                              : "text-brand-sea group-hover:text-brand-orange",
+                            "h-6 w-6 shrink-0 transition-colors",
+                          )}
+                          aria-hidden="true"
+                        />
+                        {item.name}
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             </li>
             <li className="mt-auto">
               <a
                 href="#"
-                className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 text-gray-700 hover:bg-gray-50 hover:text-indigo-600"
+                className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm font-medium leading-6 text-brand-midnight hover:bg-brand-bordeaux/5 hover:text-brand-bordeaux transition-colors"
               >
                 <LogOut
-                  className="h-6 w-6 shrink-0 text-gray-400 group-hover:text-indigo-600"
+                  className="h-6 w-6 shrink-0 text-brand-sea group-hover:text-brand-bordeaux transition-colors"
                   aria-hidden="true"
                 />
                 Log out
@@ -99,12 +108,16 @@ export function Sidebar({
   );
 }
 
-export function Header({ setSidebarOpen }: { setSidebarOpen: (open: boolean) => void }) {
+export function Header({
+  setSidebarOpen,
+}: {
+  setSidebarOpen: (open: boolean) => void;
+}) {
   return (
-    <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+    <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-brand-sea/10 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
       <button
         type="button"
-        className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
+        className="-m-2.5 p-2.5 text-brand-navy lg:hidden"
         onClick={() => setSidebarOpen(true)}
       >
         <span className="sr-only">Open sidebar</span>
@@ -112,7 +125,7 @@ export function Header({ setSidebarOpen }: { setSidebarOpen: (open: boolean) => 
       </button>
 
       {/* Separator */}
-      <div className="h-6 w-px bg-gray-200 lg:hidden" aria-hidden="true" />
+      <div className="h-6 w-px bg-brand-sea/10 lg:hidden" aria-hidden="true" />
 
       <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
         <form className="relative flex flex-1" action="#" method="GET">
@@ -120,12 +133,12 @@ export function Header({ setSidebarOpen }: { setSidebarOpen: (open: boolean) => 
             Search
           </label>
           <Search
-            className="pointer-events-none absolute inset-y-0 left-0 h-full w-5 text-gray-400"
+            className="pointer-events-none absolute inset-y-0 left-0 h-full w-5 text-brand-navy/60"
             aria-hidden="true"
           />
           <input
             id="search-field"
-            className="block h-full w-full border-0 py-0 pl-8 pr-0 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm bg-transparent outline-none"
+            className="block h-full w-full border-0 py-0 pl-8 pr-0 text-brand-midnight placeholder:text-brand-navy/40 focus:ring-0 sm:text-sm bg-transparent outline-none"
             placeholder="Search..."
             type="search"
             name="search"
@@ -134,35 +147,33 @@ export function Header({ setSidebarOpen }: { setSidebarOpen: (open: boolean) => 
         <div className="flex items-center gap-x-4 lg:gap-x-6">
           <button
             type="button"
-            className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500 relative"
+            className="-m-2.5 p-2.5 text-brand-sea hover:text-brand-orange relative transition-colors"
           >
             <span className="sr-only">View notifications</span>
             <Bell className="h-6 w-6" aria-hidden="true" />
-            <span className="absolute top-2.5 right-2.5 block h-2 w-2 rounded-full bg-red-400 ring-2 ring-white" />
+            <span className="absolute top-2.5 right-2.5 block h-2 w-2 rounded-full bg-brand-bordeaux ring-2 ring-white" />
           </button>
 
           {/* Separator */}
           <div
-            className="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200"
+            className="hidden lg:block lg:h-6 lg:w-px lg:bg-brand-sea/10"
             aria-hidden="true"
           />
 
           {/* Profile dropdown */}
-          <div className="flex items-center gap-x-4 cursor-pointer">
-            <img
-              className="h-8 w-8 rounded-full bg-gray-50 object-cover"
-              src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-              alt=""
-            />
+          <div className="flex items-center gap-x-4 cursor-pointer group">
+            <div className="h-8 w-8 rounded-full bg-brand-navy flex items-center justify-center text-white font-bold text-sm">
+              N1
+            </div>
             <span className="hidden lg:flex lg:items-center">
               <span
-                className="ml-4 text-sm font-semibold leading-6 text-gray-900"
+                className="ml-4 text-sm font-semibold leading-6 text-brand-midnight group-hover:text-brand-orange transition-colors"
                 aria-hidden="true"
               >
-                Tom Cook
+                Khai One
               </span>
               <ChevronDown
-                className="ml-2 h-5 w-5 text-gray-400"
+                className="ml-2 h-5 w-5 text-brand-navy/60 group-hover:text-brand-orange transition-colors"
                 aria-hidden="true"
               />
             </span>
@@ -173,17 +184,28 @@ export function Header({ setSidebarOpen }: { setSidebarOpen: (open: boolean) => 
   );
 }
 
-export function Layout({ children }: { children: React.ReactNode }) {
+export function Layout({
+  children,
+  currentView,
+  setCurrentView
+}: {
+  children: React.ReactNode;
+  currentView?: string;
+  setCurrentView?: (view: string) => void;
+}) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+    <div className="min-h-screen bg-background flex text-foreground">
+      <Sidebar
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        currentView={currentView}
+        setCurrentView={setCurrentView}
+      />
       <div className="flex-1 flex flex-col min-w-0">
         <Header setSidebarOpen={setSidebarOpen} />
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">
-          {children}
-        </main>
+        <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>
   );

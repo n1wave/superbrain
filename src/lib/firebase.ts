@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
+import { getFirestore } from "firebase/firestore";
 
 // Twoja konfiguracja Firebase z wykorzystaniem zmiennych środowiskowych z Vite (.env)
 const firebaseConfig = {
@@ -15,9 +16,6 @@ const firebaseConfig = {
 // Inicjalizacja Firebase i jego usług
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
+const db = getFirestore(app);
 
-// Możemy w przyszłości eksportować np. Auth lub Firestore, gdy będą potrzebne:
-// export const auth = getAuth(app);
-// export const db = getFirestore(app);
-
-export { app, analytics };
+export { app, analytics, db };

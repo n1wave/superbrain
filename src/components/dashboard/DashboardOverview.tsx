@@ -54,11 +54,11 @@ export function DashboardOverview() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-bold tracking-tight text-gray-900">
+        <h2 className="text-2xl font-bold tracking-tight text-brand-midnight">
           Dashboard
         </h2>
         <div className="flex space-x-2">
-          <button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-gray-200 bg-white hover:bg-gray-100 hover:text-gray-900 h-10 px-4 py-2">
+          <button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-sea disabled:pointer-events-none disabled:opacity-50 border border-brand-sea/20 bg-white hover:bg-brand-sea/5 hover:text-brand-navy h-10 px-4 py-2 text-brand-navy">
             Download Report
           </button>
         </div>
@@ -68,22 +68,22 @@ export function DashboardOverview() {
         {stats.map((stat) => (
           <div
             key={stat.name}
-            className="rounded-xl border border-gray-200 bg-white text-gray-950 shadow-sm"
+            className="rounded-xl border border-brand-sea/20 bg-white text-brand-midnight shadow-sm"
           >
             <div className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
               <h3 className="tracking-tight text-sm font-medium">
                 {stat.name}
               </h3>
-              <stat.icon className="h-4 w-4 text-gray-500" />
+              <stat.icon className="h-4 w-4 text-brand-sea" />
             </div>
             <div className="p-6 pt-0">
               <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+              <p className="text-xs text-brand-navy/60 mt-1 flex items-center gap-1">
                 <span
                   className={
                     stat.changeType === "positive"
-                      ? "text-emerald-500 flex items-center"
-                      : "text-red-500 flex items-center"
+                      ? "text-brand-turquoise flex items-center"
+                      : "text-brand-orange flex items-center"
                   }
                 >
                   {stat.changeType === "positive" ? (
@@ -101,20 +101,20 @@ export function DashboardOverview() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <div className="col-span-4 rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="col-span-4 rounded-xl border border-brand-sea/20 bg-white shadow-sm">
           <div className="p-6">
-            <h3 className="font-semibold leading-none tracking-tight">Overview</h3>
-            <p className="text-sm text-gray-500 mt-2">
+            <h3 className="font-semibold leading-none tracking-tight text-brand-midnight">Overview</h3>
+            <p className="text-sm text-brand-navy/60 mt-2">
               Revenue overview for the past 7 months.
             </p>
           </div>
           <div className="p-6 pt-0 h-[350px]">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minHeight={1}>
               <AreaChart data={data}>
                 <defs>
                   <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#4f46e5" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#00668E" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#00668E" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <XAxis
@@ -143,7 +143,7 @@ export function DashboardOverview() {
                 <Area
                   type="monotone"
                   dataKey="total"
-                  stroke="#4f46e5"
+                  stroke="#00668E"
                   strokeWidth={2}
                   fillOpacity={1}
                   fill="url(#colorTotal)"
@@ -152,10 +152,10 @@ export function DashboardOverview() {
             </ResponsiveContainer>
           </div>
         </div>
-        <div className="col-span-3 rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="col-span-3 rounded-xl border border-brand-sea/20 bg-white shadow-sm">
           <div className="p-6">
-            <h3 className="font-semibold leading-none tracking-tight">Recent Sales</h3>
-            <p className="text-sm text-gray-500 mt-2">
+            <h3 className="font-semibold leading-none tracking-tight text-brand-midnight">Recent Sales</h3>
+            <p className="text-sm text-brand-navy/60 mt-2">
               You made 265 sales this month.
             </p>
           </div>
@@ -194,14 +194,14 @@ export function DashboardOverview() {
                 },
               ].map((sale) => (
                 <div key={sale.email} className="flex items-center">
-                  <div className="h-9 w-9 rounded-full bg-gray-100 flex items-center justify-center font-semibold text-gray-700">
+                  <div className="h-9 w-9 rounded-full bg-brand-sea/10 flex items-center justify-center font-semibold text-brand-navy">
                     {sale.initials}
                   </div>
                   <div className="ml-4 space-y-1">
-                    <p className="text-sm font-medium leading-none">{sale.name}</p>
-                    <p className="text-sm text-gray-500">{sale.email}</p>
+                    <p className="text-sm font-medium leading-none text-brand-midnight">{sale.name}</p>
+                    <p className="text-sm text-brand-navy/60">{sale.email}</p>
                   </div>
-                  <div className="ml-auto font-medium">{sale.amount}</div>
+                  <div className="ml-auto font-medium text-brand-midnight">{sale.amount}</div>
                 </div>
               ))}
             </div>
