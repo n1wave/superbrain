@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Search, Plus, FileText, MessageSquare, Tag, X } from 'lucide-react';
-import { getDocuments, deleteDocument } from '../../lib/docs';
+import { Trash2, Search, Plus, FileText, MessageSquare, Tag, X, Pencil, Loader2, Check } from 'lucide-react';
+import { getDocuments, deleteDocument, updateDocument } from '../../lib/docs';
 import type { DocumentBase } from '../../lib/docs';
 import { DocumentEditor } from './DocumentEditor';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
@@ -17,6 +17,10 @@ export function DocsView({ initialTag, onTagFilterCleared }: {
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeTagFilter, setActiveTagFilter] = useState<string | null>(initialTag ?? null);
+    const [showCompanyOnly, setShowCompanyOnly] = useState(false);
+    type SortCol = 'name' | 'tags' | 'date';
+    const [sortCol, setSortCol] = useState<SortCol>('date');
+    const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
     const [isEditing, setIsEditing] = useState(false);
     const [selectedDoc, setSelectedDoc] = useState<DocumentBase | null>(null);
     // When opening a doc from ChatsView, default to chat tab + load specific session
@@ -26,6 +30,11 @@ export function DocsView({ initialTag, onTagFilterCleared }: {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [docToDelete, setDocToDelete] = useState<DocumentBase | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+
+    // Inline rename state
+    const [editingDocId, setEditingDocId] = useState<string | null>(null);
+    const [editDocName, setEditDocName] = useState('');
+    const [isRenaming, setIsRenaming] = useState(false);
 
     const fetchDocuments = async () => {
         setIsLoading(true);
@@ -66,6 +75,38 @@ export function DocsView({ initialTag, onTagFilterCleared }: {
         }
     };
 
+    const startRename = (e: React.MouseEvent, doc: DocumentBase) => {
+        e.stopPropagation();
+        setEditingDocId(doc.id!);
+        setEditDocName(doc.name);
+    };
+
+    const cancelRename = (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        setEditingDocId(null);
+        setEditDocName('');
+    };
+
+    const saveRename = async (e: React.MouseEvent, doc: DocumentBase) => {
+        e.stopPropagation();
+        const newName = editDocName.trim();
+        if (!newName || newName === doc.name) { cancelRename(); return; }
+        setIsRenaming(true);
+        try {
+            await updateDocument(doc.id!, { name: newName });
+            setDocuments(docs => docs.map(d => d.id === doc.id ? { ...d, name: newName } : d));
+            if (selectedDoc && selectedDoc.id === doc.id) {
+                setSelectedDoc(prev => prev ? ({ ...prev, name: newName } as DocumentBase) : null);
+            }
+            cancelRename();
+        } catch (error) {
+            console.error("Error renaming document:", error);
+            alert("Nie udało się zmienić nazwy dokumentu.");
+        } finally {
+            setIsRenaming(false);
+        }
+    };
+
     const handleOpenDocFromChat = (docId: string, sessionId?: string) => {
         const doc = documents.find(d => d.id === docId);
         if (doc) {
@@ -88,13 +129,33 @@ export function DocsView({ initialTag, onTagFilterCleared }: {
         new Set(documents.flatMap(d => d.tags ?? []).filter(Boolean))
     ).sort();
 
-    const filteredDocs = documents.filter(doc => {
-        const matchesSearch =
-            doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            doc.description?.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesTag = !activeTagFilter || (doc.tags ?? []).includes(activeTagFilter);
-        return matchesSearch && matchesTag;
-    });
+    const toggleSort = (col: 'name' | 'tags' | 'date') => {
+        if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+        else { setSortCol(col); setSortDir('asc'); }
+    };
+    const sortIcon = (col: 'name' | 'tags' | 'date') =>
+        sortCol === col ? (sortDir === 'asc' ? ' ↑' : ' ↓') : ' ↕';
+
+    const filteredDocs = documents
+        .filter(doc => {
+            const matchesSearch =
+                doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                doc.description?.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesTag = !activeTagFilter || (doc.tags ?? []).includes(activeTagFilter);
+            const matchesCompany = !showCompanyOnly || !!doc.isCompany;
+            return matchesSearch && matchesTag && matchesCompany;
+        })
+        .sort((a, b) => {
+            let cmp = 0;
+            if (sortCol === 'name') cmp = (a.name ?? '').localeCompare(b.name ?? '');
+            else if (sortCol === 'tags') cmp = ((a.tags ?? []).join(',').localeCompare((b.tags ?? []).join(',')));
+            else {
+                const tA = (a.createdAt as any)?.toDate?.()?.getTime?.() ?? new Date(a.createdAt as any).getTime() ?? 0;
+                const tB = (b.createdAt as any)?.toDate?.()?.getTime?.() ?? new Date(b.createdAt as any).getTime() ?? 0;
+                cmp = tA - tB;
+            }
+            return sortDir === 'asc' ? cmp : -cmp;
+        });
 
     const clearTagFilter = () => {
         setActiveTagFilter(null);
@@ -158,132 +219,203 @@ export function DocsView({ initialTag, onTagFilterCleared }: {
 
             {/* ── Docs tab ── */}
             {activeTab === 'docs' && (
-                <div className="bg-white p-6 rounded-xl border border-brand-sea/20 shadow-sm space-y-6">
-                    {/* Search + tag filter */}
-                    <div className="space-y-3">
-                        <div className="relative max-w-md">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <Search className="h-4 w-4 text-brand-navy/40" />
-                            </div>
-                            <input
-                                type="text"
-                                className="block w-full pl-10 pr-3 py-2 border border-brand-sea/20 rounded-md leading-5 bg-white placeholder-brand-navy/40 focus:outline-none focus:ring-1 focus:ring-brand-sea focus:border-brand-sea sm:text-sm transition-colors text-brand-midnight"
-                                placeholder="Szukaj dokumentów po nazwie lub opisie..."
-                                value={searchQuery}
-                                onChange={e => setSearchQuery(e.target.value)}
-                            />
+                <div className="space-y-6">
+                    {/* Search bar outside card */}
+                    <div className="relative max-w-md">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Search className="h-4 w-4 text-brand-navy/40" />
                         </div>
-
-                        {/* Tag filter chips */}
-                        {allTags.length > 0 && (
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-xs text-brand-navy/50 flex items-center gap-1 shrink-0">
-                                    <Tag className="h-3 w-3" /> Filtr:
-                                </span>
-                                {activeTagFilter && (
-                                    <button
-                                        onClick={clearTagFilter}
-                                        className="inline-flex items-center gap-1 text-xs bg-brand-sea text-white px-2.5 py-1 rounded-full font-medium"
-                                    >
-                                        {activeTagFilter}
-                                        <X className="h-3 w-3" />
-                                    </button>
-                                )}
-                                {allTags.filter(t => t !== activeTagFilter).map(tag => (
-                                    <button
-                                        key={tag}
-                                        onClick={() => setActiveTagFilter(tag)}
-                                        className="inline-flex items-center text-xs bg-brand-sea/10 text-brand-sea px-2.5 py-1 rounded-full hover:bg-brand-sea/20 transition-colors"
-                                    >
-                                        {tag}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+                        <input
+                            type="text"
+                            className="block w-full pl-10 pr-3 py-2 border border-brand-sea/20 rounded-md leading-5 bg-white placeholder-brand-navy/40 focus:outline-none focus:ring-1 focus:ring-brand-sea focus:border-brand-sea sm:text-sm transition-colors text-brand-midnight"
+                            placeholder="Szukaj dokumentów po nazwie lub opisie..."
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                        />
                     </div>
 
-                    <div className="overflow-x-auto rounded-lg border border-brand-sea/10">
-                        <table className="w-full text-sm text-left">
-                            <thead className="text-xs text-brand-navy uppercase bg-brand-sea/5 border-b border-brand-sea/10">
-                                <tr>
-                                    <th scope="col" className="px-6 py-4 font-semibold">Nazwa dokumentu</th>
-                                    <th scope="col" className="px-6 py-4 font-semibold">Tagi</th>
-                                    <th scope="col" className="px-6 py-4 font-semibold text-center">Dodano</th>
-                                    <th scope="col" className="px-6 py-4 font-semibold text-right">Akcje</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {isLoading ? (
-                                    <tr>
-                                        <td colSpan={4} className="px-6 py-8 text-center text-brand-navy/60">
-                                            <div className="flex justify-center items-center gap-2">
-                                                <div className="w-4 h-4 rounded-full bg-brand-sea/50 animate-ping" />
-                                                Ładowanie bazy wiedzy...
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ) : filteredDocs.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={4} className="px-6 py-12 text-center">
-                                            <div className="mx-auto w-12 h-12 bg-brand-sea/5 rounded-full flex items-center justify-center mb-3">
-                                                <FileText className="h-6 w-6 text-brand-sea/50" />
-                                            </div>
-                                            <p className="text-brand-midnight font-medium">Brak dodanych dokumentów</p>
-                                            <p className="text-brand-navy/50 text-sm mt-1">Dodaj swój pierwszy plik z dysku, aby wczytać tekst.</p>
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    filteredDocs.map(doc => (
-                                        <tr
-                                            key={doc.id}
-                                            className="bg-white border-b border-brand-sea/5 hover:bg-brand-sea/5 cursor-pointer transition-colors"
-                                            onClick={() => setSelectedDoc(doc)}
+                    <div className="bg-white p-6 rounded-xl border border-brand-sea/20 shadow-sm space-y-6">
+                        {/* Tag filter & Firmowy */}
+                        <div className="space-y-3">
+
+                            {/* Tag filter chips */}
+                            {allTags.length > 0 && (
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-xs text-brand-navy/50 flex items-center gap-1 shrink-0">
+                                        <Tag className="h-3 w-3" /> Filtr:
+                                    </span>
+                                    {activeTagFilter && (
+                                        <button
+                                            onClick={clearTagFilter}
+                                            className="inline-flex items-center gap-1 text-xs bg-brand-sea text-white px-2.5 py-1 rounded-full font-medium"
                                         >
-                                            <td className="px-6 py-4 font-medium text-brand-midnight flex items-center gap-3">
-                                                <div className="p-2 bg-brand-sea/10 rounded-md text-brand-sea">
-                                                    <FileText className="h-4 w-4" />
-                                                </div>
-                                                <span className="truncate max-w-[250px]">{doc.name}</span>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex flex-wrap gap-1.5">
-                                                    {(doc.tags ?? []).length > 0 ? (
-                                                        (doc.tags ?? []).map((tag, i) => (
-                                                            <button
-                                                                key={i}
-                                                                onClick={e => { e.stopPropagation(); setActiveTagFilter(tag); }}
-                                                                className={`text-xs px-2.5 py-1 rounded-full transition-colors ${activeTagFilter === tag
-                                                                        ? 'bg-brand-sea text-white'
-                                                                        : 'bg-brand-sea/10 text-brand-sea hover:bg-brand-sea/20'
-                                                                    }`}
-                                                            >
-                                                                {tag}
-                                                            </button>
-                                                        ))
-                                                    ) : (
-                                                        <span className="text-brand-navy/30 text-xs">—</span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 text-brand-navy/60 whitespace-nowrap text-center">
-                                                {formatDate(doc.createdAt)}
-                                            </td>
-                                            <td className="px-6 py-4 text-right">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <button
-                                                        onClick={e => promptDelete(e, doc)}
-                                                        className="p-2 text-brand-bordeaux hover:bg-brand-bordeaux/10 rounded-md transition-colors"
-                                                        title="Usuń z bazy"
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </button>
+                                            {activeTagFilter}
+                                            <X className="h-3 w-3" />
+                                        </button>
+                                    )}
+                                    {allTags.filter(t => t !== activeTagFilter).map(tag => (
+                                        <button
+                                            key={tag}
+                                            onClick={() => setActiveTagFilter(tag)}
+                                            className="inline-flex items-center text-xs bg-brand-sea/10 text-brand-sea px-2.5 py-1 rounded-full hover:bg-brand-sea/20 transition-colors"
+                                        >
+                                            {tag}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Firmowy checkbox */}
+                            <label className="flex items-center gap-2 cursor-pointer select-none w-fit">
+                                <input
+                                    type="checkbox"
+                                    checked={showCompanyOnly}
+                                    onChange={e => setShowCompanyOnly(e.target.checked)}
+                                    className="w-4 h-4 rounded accent-brand-sea cursor-pointer"
+                                />
+                                <span className="text-sm text-brand-midnight font-medium">Tylko dokumenty firmowe</span>
+                            </label>
+                        </div>
+
+                        <div className="overflow-x-auto rounded-lg border border-brand-sea/10">
+                            <table className="w-full text-sm text-left">
+                                <thead className="text-xs text-brand-navy uppercase bg-brand-sea/5 border-b border-brand-sea/10">
+                                    <tr>
+                                        <th scope="col" className="px-6 py-4 font-semibold">
+                                            <button onClick={() => toggleSort('name')} className="hover:text-brand-sea transition-colors">
+                                                Nazwa dokumentu{sortIcon('name')}
+                                            </button>
+                                        </th>
+                                        <th scope="col" className="px-6 py-4 font-semibold">
+                                            <button onClick={() => toggleSort('tags')} className="hover:text-brand-sea transition-colors">
+                                                Tagi{sortIcon('tags')}
+                                            </button>
+                                        </th>
+                                        <th scope="col" className="px-6 py-4 font-semibold text-center">
+                                            <button onClick={() => toggleSort('date')} className="hover:text-brand-sea transition-colors">
+                                                Dodano{sortIcon('date')}
+                                            </button>
+                                        </th>
+                                        <th scope="col" className="px-6 py-4 font-semibold text-right">Akcje</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {isLoading ? (
+                                        <tr>
+                                            <td colSpan={4} className="px-6 py-8 text-center text-brand-navy/60">
+                                                <div className="flex justify-center items-center gap-2">
+                                                    <div className="w-4 h-4 rounded-full bg-brand-sea/50 animate-ping" />
+                                                    Ładowanie bazy wiedzy...
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                                    ) : filteredDocs.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={4} className="px-6 py-12 text-center">
+                                                <div className="mx-auto w-12 h-12 bg-brand-sea/5 rounded-full flex items-center justify-center mb-3">
+                                                    <FileText className="h-6 w-6 text-brand-sea/50" />
+                                                </div>
+                                                <p className="text-brand-midnight font-medium">Brak dodanych dokumentów</p>
+                                                <p className="text-brand-navy/50 text-sm mt-1">Dodaj swój pierwszy plik z dysku, aby wczytać tekst.</p>
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        filteredDocs.map(doc => (
+                                            <tr
+                                                key={doc.id}
+                                                className="bg-white border-b border-brand-sea/5 hover:bg-brand-sea/5 cursor-pointer transition-colors"
+                                                onClick={() => setSelectedDoc(doc)}
+                                            >
+                                                <td className="px-6 py-4 font-medium text-brand-midnight flex items-center gap-3">
+                                                    <div className="p-2 bg-brand-sea/10 rounded-md text-brand-sea shrink-0">
+                                                        <FileText className="h-4 w-4" />
+                                                    </div>
+                                                    {editingDocId === doc.id ? (
+                                                        <input
+                                                            autoFocus
+                                                            value={editDocName}
+                                                            onChange={e => setEditDocName(e.target.value)}
+                                                            onClick={e => e.stopPropagation()}
+                                                            onKeyDown={e => {
+                                                                if (e.key === 'Enter') saveRename(e as any, doc);
+                                                                if (e.key === 'Escape') cancelRename(e as any);
+                                                            }}
+                                                            className="border border-brand-sea rounded-md px-2 py-1 text-sm text-brand-midnight focus:outline-none focus:ring-1 focus:ring-brand-sea w-full max-w-[250px]"
+                                                        />
+                                                    ) : (
+                                                        <span className="truncate max-w-[250px]">{doc.name}</span>
+                                                    )}
+                                                    {doc.isCompany && (
+                                                        <span className="shrink-0 text-[10px] bg-brand-bordeaux/10 text-brand-bordeaux px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide">Firmowy</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        {(doc.tags ?? []).length > 0 ? (
+                                                            (doc.tags ?? []).map((tag, i) => (
+                                                                <button
+                                                                    key={i}
+                                                                    onClick={e => { e.stopPropagation(); setActiveTagFilter(tag); }}
+                                                                    className={`text-xs px-2.5 py-1 rounded-full transition-colors ${activeTagFilter === tag
+                                                                        ? 'bg-brand-sea text-white'
+                                                                        : 'bg-brand-sea/10 text-brand-sea hover:bg-brand-sea/20'
+                                                                        }`}
+                                                                >
+                                                                    {tag}
+                                                                </button>
+                                                            ))
+                                                        ) : (
+                                                            <span className="text-brand-navy/30 text-xs">—</span>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-brand-navy/60 whitespace-nowrap text-center">
+                                                    {formatDate(doc.createdAt)}
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
+                                                    {editingDocId === doc.id ? (
+                                                        <div className="flex items-center justify-end gap-1">
+                                                            <button
+                                                                onClick={e => saveRename(e, doc)}
+                                                                disabled={isRenaming}
+                                                                className="p-1.5 text-green-600 hover:bg-green-50 rounded-md transition-colors disabled:opacity-50"
+                                                                title="Zapisz"
+                                                            >
+                                                                {isRenaming ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                                                            </button>
+                                                            <button
+                                                                onClick={cancelRename}
+                                                                className="p-1.5 text-brand-navy/60 hover:bg-brand-sea/10 rounded-md transition-colors"
+                                                                title="Anuluj"
+                                                            >
+                                                                <X className="h-4 w-4" />
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex items-center justify-end gap-1">
+                                                            <button
+                                                                onClick={e => startRename(e, doc)}
+                                                                className="p-1.5 text-brand-navy/50 hover:text-brand-midnight hover:bg-brand-sea/10 rounded-md transition-colors"
+                                                                title="Zmień nazwę"
+                                                            >
+                                                                <Pencil className="h-4 w-4" />
+                                                            </button>
+                                                            <button
+                                                                onClick={e => promptDelete(e, doc)}
+                                                                className="p-1.5 text-brand-bordeaux hover:bg-brand-bordeaux/10 rounded-md transition-colors"
+                                                                title="Usuń z bazy"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             )}

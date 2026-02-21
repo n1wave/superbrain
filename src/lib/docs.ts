@@ -31,6 +31,8 @@ export interface DocumentBase {
         easeNote: string;
         evergreenNote: string;
     };
+    // Company document flag
+    isCompany?: boolean;
 }
 
 const COLLECTION_NAME = "documents";
@@ -290,6 +292,18 @@ export const renameTagInAllDocs = async (oldTag: string, newTag: string): Promis
         affected.map(d =>
             updateDocument(d.id!, {
                 tags: (d.tags ?? []).map(t => (t === oldTag ? newTag.trim() : t)),
+            })
+        )
+    );
+};
+
+export const deleteTagFromAllDocs = async (tag: string): Promise<void> => {
+    const docs = await getDocuments();
+    const affected = docs.filter(d => d.tags?.includes(tag));
+    await Promise.all(
+        affected.map(d =>
+            updateDocument(d.id!, {
+                tags: (d.tags ?? []).filter(t => t !== tag),
             })
         )
     );

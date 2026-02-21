@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Tag, Search, Check, X, Loader2 } from 'lucide-react';
-import { getAllTags, renameTagInAllDocs, type TagInfo } from '../../lib/docs';
+import { Tag, Search, Check, X, Loader2, Pencil, Trash2 } from 'lucide-react';
+import { getAllTags, renameTagInAllDocs, deleteTagFromAllDocs, type TagInfo } from '../../lib/docs';
 
 export function TagsView({
     onNavigateToDocsWithTag,
@@ -13,6 +13,15 @@ export function TagsView({
     const [editingTag, setEditingTag] = useState<string | null>(null);
     const [editValue, setEditValue] = useState('');
     const [isSaving, setIsSaving] = useState(false);
+    const [sortCol, setSortCol] = useState<'name' | 'count'>('count');
+    const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+
+    const toggleSort = (col: 'name' | 'count') => {
+        if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+        else { setSortCol(col); setSortDir(col === 'name' ? 'asc' : 'desc'); }
+    };
+    const sortIcon = (col: 'name' | 'count') =>
+        sortCol === col ? (sortDir === 'asc' ? ' ↑' : ' ↓') : ' ↕';
 
     const load = () => {
         setIsLoading(true);
@@ -50,9 +59,25 @@ export function TagsView({
         }
     };
 
-    const filtered = tags.filter(t =>
-        t.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const deleteTag = async (name: string) => {
+        if (!confirm(`Usunąć tag "${name}" ze wszystkich dokumentów?`)) return;
+        try {
+            await deleteTagFromAllDocs(name);
+            load();
+        } catch (e) {
+            console.error(e);
+            alert('Nie udało się usunąć tagu.');
+        }
+    };
+
+    const filtered = tags
+        .filter(t => t.name.toLowerCase().includes(searchQuery.toLowerCase()))
+        .sort((a, b) => {
+            const cmp = sortCol === 'name'
+                ? a.name.localeCompare(b.name)
+                : a.count - b.count;
+            return sortDir === 'asc' ? cmp : -cmp;
+        });
 
     return (
         <div className="space-y-6">
@@ -80,8 +105,16 @@ export function TagsView({
                 <table className="w-full text-sm text-left">
                     <thead className="text-xs text-brand-navy uppercase bg-brand-sea/5 border-b border-brand-sea/10">
                         <tr>
-                            <th className="px-6 py-4 font-semibold">Tag</th>
-                            <th className="px-6 py-4 font-semibold text-center">Dokumenty</th>
+                            <th className="px-6 py-4 font-semibold">
+                                <button onClick={() => toggleSort('name')} className="hover:text-brand-sea transition-colors">
+                                    Tag{sortIcon('name')}
+                                </button>
+                            </th>
+                            <th className="px-6 py-4 font-semibold text-center">
+                                <button onClick={() => toggleSort('count')} className="hover:text-brand-sea transition-colors">
+                                    Dokumenty{sortIcon('count')}
+                                </button>
+                            </th>
                             <th className="px-6 py-4 font-semibold text-right">Akcje</th>
                         </tr>
                     </thead>
@@ -159,12 +192,22 @@ export function TagsView({
                                             </button>
                                         </div>
                                     ) : (
-                                        <button
-                                            onClick={() => startEdit(tag)}
-                                            className="text-xs text-brand-navy/50 hover:text-brand-midnight hover:bg-brand-sea/10 px-2 py-1 rounded-md transition-colors"
-                                        >
-                                            Zmień nazwę
-                                        </button>
+                                        <div className="flex items-center justify-end gap-1">
+                                            <button
+                                                onClick={() => startEdit(tag)}
+                                                className="p-1.5 text-brand-navy/50 hover:text-brand-midnight hover:bg-brand-sea/10 rounded-md transition-colors"
+                                                title="Zmień nazwę"
+                                            >
+                                                <Pencil className="h-4 w-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => deleteTag(tag.name)}
+                                                className="p-1.5 text-brand-bordeaux hover:bg-brand-bordeaux/10 rounded-md transition-colors"
+                                                title="Usuń tag ze wszystkich dokumentów"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        </div>
                                     )}
                                 </td>
                             </tr>
