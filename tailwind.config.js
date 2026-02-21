@@ -1,11 +1,12 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       colors: {
-        background: "#ffffff",
-        foreground: "#000000",
+        background: "var(--background)",
+        foreground: "var(--foreground)",
         brand: {
           bordeaux: "#4C0302",
           orange: "#D35F18",

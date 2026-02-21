@@ -28,23 +28,23 @@ export function ChatsView({ onOpenDocSession }: {
     );
 
     return (
-        <div className="bg-white p-6 rounded-xl border border-brand-sea/20 shadow-sm space-y-6">
+        <div className="bg-white dark:bg-[#050B14]/50 p-6 rounded-xl border border-brand-sea/20 dark:border-white/10 shadow-sm space-y-6">
             <div className="relative max-w-md">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="h-4 w-4 text-brand-navy/40" />
+                    <Search className="h-4 w-4 text-brand-navy/40 dark:text-gray-400" />
                 </div>
                 <input
                     type="text"
-                    className="block w-full pl-10 pr-3 py-2 border border-brand-sea/20 rounded-md text-sm bg-white placeholder-brand-navy/40 focus:outline-none focus:ring-1 focus:ring-brand-sea focus:border-brand-sea transition-colors text-brand-midnight"
+                    className="block w-full pl-10 pr-3 py-2 border border-brand-sea/20 dark:border-white/10 rounded-md text-sm bg-white dark:bg-white/5 placeholder-brand-navy/40 dark:placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-brand-sea focus:border-brand-sea transition-colors text-brand-midnight dark:text-white"
                     placeholder="Szukaj po nazwie dokumentu lub sesji..."
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                 />
             </div>
 
-            <div className="overflow-x-auto rounded-lg border border-brand-sea/10">
-                <table className="w-full text-sm text-left">
-                    <thead className="text-xs text-brand-navy uppercase bg-brand-sea/5 border-b border-brand-sea/10">
+            <div className="overflow-x-auto rounded-lg border border-brand-sea/10 dark:border-white/10">
+                <table className="w-full text-sm text-left text-brand-midnight dark:text-gray-300">
+                    <thead className="text-xs text-brand-navy dark:text-gray-400 uppercase bg-brand-sea/5 dark:bg-white/5 border-b border-brand-sea/10 dark:border-white/10">
                         <tr>
                             <th className="px-6 py-4 font-semibold">Sesja</th>
                             <th className="px-6 py-4 font-semibold">Dokument</th>
@@ -80,10 +80,10 @@ export function ChatsView({ onOpenDocSession }: {
                             filtered.map(s => (
                                 <tr
                                     key={`${s.docId}-${s.id}`}
-                                    className="bg-white border-b border-brand-sea/5 hover:bg-brand-sea/5 cursor-pointer transition-colors"
+                                    className="bg-white dark:bg-transparent border-b border-brand-sea/5 dark:border-white/5 hover:bg-brand-sea/5 dark:hover:bg-white/5 cursor-pointer transition-colors"
                                     onClick={() => onOpenDocSession(s.docId, s.id!)}
                                 >
-                                    <td className="px-6 py-4 font-medium text-brand-midnight">
+                                    <td className="px-6 py-4 font-medium text-brand-midnight dark:text-white">
                                         <div className="flex items-center gap-3">
                                             <div className="p-2 bg-brand-turquoise/10 rounded-md text-brand-turquoise shrink-0">
                                                 <MessageSquare className="h-4 w-4" />

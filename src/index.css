@@ -3,6 +3,18 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --background: #ffffff;
+    --foreground: #000000;
+  }
+
+  .dark {
+    --background: #050b14;
+    --foreground: #ffffff;
+  }
+}
+
+@layer base {
   body {
     @apply bg-background text-foreground;
   }

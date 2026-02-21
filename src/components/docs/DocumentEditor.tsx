@@ -348,12 +348,15 @@ export function DocumentEditor({
     };
 
     // ── Style helpers ──
-    const card = 'rounded-xl border border-brand-sea/20 bg-white p-4 shadow-sm';
-    const inp = 'w-full border border-brand-sea/20 rounded-md p-2 text-sm focus:border-brand-sea outline-none transition-colors text-brand-midnight';
-    const lbl = 'block text-sm font-medium text-brand-navy mb-1';
-    const btnBase = 'flex items-center gap-2 px-4 py-2 rounded-md font-medium transition-colors text-sm whitespace-nowrap';
+    const card = 'rounded-xl border border-brand-sea/20 dark:border-white/10 bg-white dark:bg-[#050B14]/50 p-4 shadow-sm';
+    const inp = 'w-full border border-brand-sea/20 dark:border-white/10 rounded-md p-2 text-sm focus:border-brand-sea outline-none transition-colors text-brand-midnight dark:text-white dark:bg-transparent';
+    const lbl = 'block text-sm font-medium text-brand-navy dark:text-brand-turquoise mb-1';
+    const btnBase = 'flex items-center justify-center gap-2 px-4 py-2 rounded-md font-medium transition-colors text-sm whitespace-nowrap';
+    const btnPrimary = `${btnBase} bg-brand-sea text-white hover:bg-brand-sea/90 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed border border-transparent`;
+    const btnSecondary = `${btnBase} bg-white dark:bg-[#050B14] text-brand-midnight dark:text-white border border-brand-sea/20 dark:border-white/10 hover:bg-brand-sea/5 dark:hover:bg-white/5 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed`;
+
     const tabBtn = (active: boolean) =>
-        `flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${active ? 'bg-brand-sea/10 text-brand-sea' : 'text-brand-navy/60 hover:text-brand-midnight hover:bg-brand-sea/5'}`;
+        `flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${active ? 'bg-white dark:bg-brand-sea text-brand-sea dark:text-white shadow-sm border border-brand-sea/10 dark:border-brand-sea' : 'text-brand-navy/60 dark:text-gray-400 hover:text-brand-midnight dark:hover:text-white hover:bg-brand-sea/5 dark:hover:bg-white/5 border border-transparent'}`;
 
     const formatDate = (d: any) => {
         if (!d) return '';
@@ -372,7 +375,7 @@ export function DocumentEditor({
                 >
                     <ArrowLeft className="h-5 w-5" />
                 </button>
-                <h2 className="text-xl font-bold tracking-tight text-brand-midnight flex-1 min-w-0 truncate">
+                <h2 className="text-xl font-bold tracking-tight text-brand-midnight dark:text-white flex-1 min-w-0 truncate">
                     {initialDoc ? 'Edycja dokumentu' : 'Dodaj nowy dokument'}
                 </h2>
                 {/* Dokument firmowy checkbox */}
@@ -389,21 +392,21 @@ export function DocumentEditor({
                     value={name}
                     onChange={e => setName(e.target.value)}
                     autoComplete="off"
-                    className="border border-brand-sea/20 rounded-md px-3 py-2 text-sm focus:border-brand-sea outline-none transition-colors text-brand-midnight w-44"
+                    className="border border-brand-sea/20 dark:border-white/20 rounded-md px-3 py-2 text-sm focus:border-brand-sea outline-none transition-colors text-brand-midnight dark:text-white dark:bg-[#050B14] w-44"
                     placeholder="Nazwa dokumentu..."
                 />
                 <input ref={fileInputRef} type="file" accept=".txt,.docx,text/plain" onChange={handleFileChange} className="hidden" />
-                <button onClick={() => fileInputRef.current?.click()} className={`${btnBase} border border-brand-sea/30 text-brand-sea hover:bg-brand-sea/5`}>
+                <button onClick={() => fileInputRef.current?.click()} className={btnSecondary}>
                     <Upload className="h-4 w-4" />
                     {file ? file.name.slice(0, 14) + (file.name.length > 14 ? '…' : '') : 'Wybierz plik'}
                 </button>
                 <button onClick={handleAnalyzeAI} disabled={isAnalyzing || !content.trim()}
-                    className={`${btnBase} bg-gradient-to-r from-brand-turquoise to-brand-sea text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed`}>
+                    className={btnSecondary}>
                     <Sparkles className="h-4 w-4" />
                     {isAnalyzing ? 'Analizowanie...' : 'Uruchom Analizę AI'}
                 </button>
                 <button onClick={handleSave} disabled={isLoading || !content.trim()}
-                    className={`${btnBase} bg-brand-sea text-white hover:bg-brand-navy disabled:opacity-50 disabled:cursor-not-allowed`}>
+                    className={btnPrimary}>
                     <Save className="h-4 w-4" />
                     {initialDoc ? 'Zapisz zmiany' : 'Zapisz w bazie'}
                 </button>
@@ -445,7 +448,7 @@ export function DocumentEditor({
                         ].map(m => (
                             <div key={m.label} className={`${card} flex flex-col`}>
                                 <div className="flex items-start justify-between mb-1">
-                                    <span className="text-sm font-semibold text-brand-midnight leading-tight">{m.label}</span>
+                                    <span className="text-sm font-semibold text-brand-midnight dark:text-white leading-tight">{m.label}</span>
                                     <button
                                         onClick={() => { setEditingDocMetric(m.id); setEditingDocMetricValue(String(m.score)); }}
                                         className="text-brand-sea/50 hover:text-brand-sea p-1"
@@ -495,7 +498,7 @@ export function DocumentEditor({
                     <div className={`${card} flex items-center justify-between gap-6`}>
                         <div>
                             <div className="flex items-center gap-2 mb-0.5">
-                                <h3 className="font-semibold text-brand-midnight flex items-center gap-2">
+                                <h3 className="font-semibold text-brand-midnight dark:text-brand-turquoise flex items-center gap-2">
                                     <BarChart2 className="h-4 w-4 text-brand-turquoise" /> Ocena ogólna dokumentu
                                 </h3>
                                 <button
@@ -546,13 +549,13 @@ export function DocumentEditor({
             {/* ══ WIERSZ 1: TL;DR | Typ i temat | Tagi ══ */}
             <div className="grid grid-cols-3 gap-4">
                 <div className={card}>
-                    <h3 className="font-semibold text-brand-midnight flex items-center gap-2 mb-2">
+                    <h3 className="font-semibold text-brand-midnight dark:text-brand-turquoise flex items-center gap-2 mb-2">
                         <Sparkles className="h-4 w-4 text-brand-turquoise" /> TL;DR (Abstrakt)
                     </h3>
                     <textarea value={tldr} onChange={e => setTldr(e.target.value)} className={`${inp} resize-none h-36`} placeholder="Krótkie podsumowanie..." />
                 </div>
                 <div className={`${card} space-y-2`}>
-                    <h3 className="font-semibold text-brand-midnight flex items-center gap-2">
+                    <h3 className="font-semibold text-brand-midnight dark:text-brand-turquoise flex items-center gap-2">
                         <BookOpen className="h-4 w-4 text-brand-turquoise" /> Typ i temat
                     </h3>
                     <div>
@@ -565,7 +568,7 @@ export function DocumentEditor({
                     </div>
                 </div>
                 <div className={card}>
-                    <h3 className="font-semibold text-brand-midnight flex items-center gap-2 mb-2">
+                    <h3 className="font-semibold text-brand-midnight dark:text-brand-turquoise flex items-center gap-2 mb-2">
                         <Tag className="h-4 w-4 text-brand-turquoise" /> Tagi
                     </h3>
                     {/* Pills preview */}
@@ -586,19 +589,19 @@ export function DocumentEditor({
             {/* ══ WIERSZ 2: Wykorzystanie | Kluczowe Wnioski | Wymagane Akcje ══ */}
             <div className="grid grid-cols-3 gap-4">
                 <div className={card}>
-                    <h3 className="font-semibold text-brand-midnight flex items-center gap-2 mb-2">
+                    <h3 className="font-semibold text-brand-midnight dark:text-brand-turquoise flex items-center gap-2 mb-2">
                         <Wrench className="h-4 w-4 text-brand-turquoise" /> Wykorzystanie / Użycie
                     </h3>
                     <textarea value={usage} onChange={e => setUsage(e.target.value)} className={`${inp} resize-none h-52`} placeholder="Jak można wykorzystać ten dokument..." />
                 </div>
                 <div className={card}>
-                    <h3 className="font-semibold text-brand-midnight flex items-center gap-2 mb-2">
+                    <h3 className="font-semibold text-brand-midnight dark:text-brand-turquoise flex items-center gap-2 mb-2">
                         <Lightbulb className="h-4 w-4 text-brand-turquoise" /> Kluczowe Wnioski
                     </h3>
                     <textarea value={keyFindings} onChange={e => setKeyFindings(e.target.value)} className={`${inp} resize-none h-52`} placeholder="Najważniejsze wnioski..." />
                 </div>
                 <div className={card}>
-                    <h3 className="font-semibold text-brand-midnight flex items-center gap-2 mb-2">
+                    <h3 className="font-semibold text-brand-midnight dark:text-brand-turquoise flex items-center gap-2 mb-2">
                         <CheckSquare className="h-4 w-4 text-brand-turquoise" /> Wymagane Akcje
                     </h3>
                     <textarea value={actionItems} onChange={e => setActionItems(e.target.value)} className={`${inp} resize-none h-52`} placeholder="Co należy zrobić..." />
@@ -606,12 +609,12 @@ export function DocumentEditor({
             </div>
 
             {/* ══ WIERSZ 3: Edytor / Podgląd / Chat ══ */}
-            <div className="rounded-xl border border-brand-sea/20 bg-white shadow-sm flex flex-col h-[640px] overflow-hidden">
+            <div className="rounded-xl border border-brand-sea/20 dark:border-white/10 bg-white dark:bg-[#050B14]/50 shadow-sm flex flex-col h-[640px] overflow-hidden">
                 {/* Toolbar */}
-                <div className="p-4 border-b border-brand-sea/10 bg-brand-sea/5 flex items-center justify-between shrink-0">
+                <div className="p-4 border-b border-brand-sea/10 dark:border-white/10 bg-brand-sea/5 dark:bg-white/5 flex items-center justify-between shrink-0">
                     <div>
-                        <h3 className="font-semibold text-brand-midnight">Treść dokumentu</h3>
-                        <p className="text-xs text-brand-navy/60">
+                        <h3 className="font-semibold text-brand-midnight dark:text-white">Treść dokumentu</h3>
+                        <p className="text-xs text-brand-navy/60 dark:text-gray-400">
                             {viewMode === 'chat'
                                 ? (activeSessionId ? `Aktywna sesja: ${sessions.find(s => s.id === activeSessionId)?.title ?? ''}` : 'Wybierz lub utwórz sesję')
                                 : 'Markdown — edytuj lub podgląd'}
@@ -630,7 +633,7 @@ export function DocumentEditor({
                                 <button
                                     onClick={handleAnalyzeChat}
                                     disabled={isAnalyzingChat || chatMessages.length < 2}
-                                    className={`${btnBase} bg-gradient-to-r from-brand-turquoise to-brand-sea text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-xs px-3 py-1.5`}
+                                    className={`${btnSecondary} text-xs px-3 py-1.5`}
                                 >
                                     <BarChart2 className="h-3.5 w-3.5" />
                                     {isAnalyzingChat ? 'Analizuję...' : 'Analizuj Chat'}
@@ -638,7 +641,7 @@ export function DocumentEditor({
                             </>
                         )}
                         {/* Tab switcher */}
-                        <div className="flex bg-white rounded-lg p-1 border border-brand-sea/20 gap-0.5">
+                        <div className="flex bg-white dark:bg-black/20 rounded-lg p-1 border border-brand-sea/20 dark:border-white/10 gap-0.5">
                             <button onClick={() => setViewMode('edit')} className={tabBtn(viewMode === 'edit')}>
                                 <Edit3 className="h-4 w-4" /> Edycja
                             </button>
@@ -653,10 +656,10 @@ export function DocumentEditor({
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 relative bg-white overflow-hidden">
+                <div className="flex-1 relative bg-white dark:bg-transparent overflow-hidden">
                     {isLoading && (
-                        <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-10 backdrop-blur-sm">
-                            <div className="text-brand-sea font-medium flex items-center gap-2">
+                        <div className="absolute inset-0 bg-white/50 dark:bg-[#050B14]/50 flex items-center justify-center z-10 backdrop-blur-sm">
+                            <div className="text-brand-sea flex items-center gap-2 font-medium">
                                 <div className="h-4 w-4 border-2 border-brand-sea border-t-transparent rounded-full animate-spin" />
                                 Przetwarzanie...
                             </div>
@@ -666,17 +669,17 @@ export function DocumentEditor({
                     {/* Edit */}
                     {viewMode === 'edit' && (
                         <textarea value={content} onChange={e => setContent(e.target.value)}
-                            className="w-full h-full p-6 resize-none outline-none text-brand-midnight font-mono text-sm leading-relaxed"
+                            className="w-full h-full p-6 resize-none outline-none dark:bg-transparent text-brand-midnight dark:text-gray-200 font-mono text-sm leading-relaxed"
                             placeholder="Wybierz plik z dysku, aby wczytać jego treść..." />
                     )}
 
                     {/* Preview */}
                     {viewMode === 'preview' && (
                         <div className="absolute inset-0 p-6 overflow-y-auto">
-                            <div className="prose prose-sm md:prose-base max-w-none text-brand-midnight leading-relaxed">
+                            <div className="prose prose-sm md:prose-base dark:prose-invert max-w-none text-brand-midnight dark:text-white leading-relaxed">
                                 {content
                                     ? <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
-                                    : <span className="text-brand-navy/40 italic">Brak treści do podglądu...</span>}
+                                    : <span className="text-brand-navy/40 dark:text-gray-500 italic">Brak treści do podglądu...</span>}
                             </div>
                         </div>
                     )}
@@ -690,7 +693,7 @@ export function DocumentEditor({
                                     <div className="w-12 h-12 bg-brand-turquoise/10 rounded-full flex items-center justify-center">
                                         <MessageSquare className="h-6 w-6 text-brand-turquoise" />
                                     </div>
-                                    <p className="text-brand-midnight font-medium">Wybierz sesję lub utwórz nową</p>
+                                    <p className="text-brand-midnight dark:text-white font-medium">Wybierz sesję lub utwórz nową</p>
                                     <p className="text-brand-navy/50 text-sm">Użyj przycisku „Nowa sesja" powyżej</p>
                                 </div>
                             )}
@@ -708,9 +711,9 @@ export function DocumentEditor({
                                             <div key={msg.id || i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                                 <div className={`max-w-[75%] rounded-xl px-4 py-2.5 text-sm leading-relaxed ${msg.role === 'user'
                                                     ? 'bg-brand-sea text-white rounded-br-none'
-                                                    : 'bg-brand-sea/5 text-brand-midnight border border-brand-sea/10 rounded-bl-none'
+                                                    : 'bg-brand-sea/5 dark:bg-white/10 text-brand-midnight dark:text-gray-200 border border-brand-sea/10 dark:border-white/10 rounded-bl-none'
                                                     }`}>
-                                                    <div className="prose prose-sm max-w-none">
+                                                    <div className="prose prose-sm dark:prose-invert max-w-none">
                                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
                                                     </div>
                                                 </div>
@@ -718,9 +721,9 @@ export function DocumentEditor({
                                         ))}
                                         {isChatLoading && (
                                             <div className="flex justify-start">
-                                                <div className="bg-brand-sea/5 border border-brand-sea/10 rounded-xl rounded-bl-none px-4 py-2.5 flex items-center gap-2">
+                                                <div className="bg-brand-sea/5 dark:bg-white/10 border border-brand-sea/10 dark:border-white/10 rounded-xl rounded-bl-none px-4 py-2.5 flex items-center gap-2">
                                                     <Loader2 className="h-4 w-4 text-brand-turquoise animate-spin" />
-                                                    <span className="text-sm text-brand-navy/60">AI pisze...</span>
+                                                    <span className="text-sm text-brand-navy/60 dark:text-gray-400">AI pisze...</span>
                                                 </div>
                                             </div>
                                         )}
@@ -738,7 +741,7 @@ export function DocumentEditor({
                                                     onChange={e => setChatInput(e.target.value)}
                                                     onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendChat(); } }}
                                                     placeholder="Zadaj pytanie o dokument... (Enter = wyślij)"
-                                                    className="flex-1 border border-brand-sea/20 rounded-lg px-3 py-2 text-sm focus:border-brand-sea outline-none transition-colors text-brand-midnight"
+                                                    className="flex-1 dark:bg-white/5 border border-brand-sea/20 dark:border-white/10 rounded-lg px-3 py-2 text-sm focus:border-brand-sea outline-none transition-colors text-brand-midnight dark:text-white"
                                                 />
                                                 <button onClick={handleSendChat} disabled={!chatInput.trim() || isChatLoading}
                                                     className="flex items-center gap-1.5 bg-brand-sea text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-navy transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
@@ -757,7 +760,7 @@ export function DocumentEditor({
             {/* ══ WIERSZ 4: Tabela sesji — zawsze widoczna gdy dokument jest zapisany ══ */}
             {initialDoc?.id && (
                 <div className={card}>
-                    <h3 className="font-semibold text-brand-midnight flex items-center gap-2 mb-3">
+                    <h3 className="font-semibold text-brand-midnight dark:text-brand-turquoise flex items-center gap-2 mb-3">
                         <Clock className="h-4 w-4 text-brand-turquoise" /> Historia sesji tego dokumentu
                     </h3>
                     {sessions.length === 0 ? (
@@ -783,7 +786,7 @@ export function DocumentEditor({
                                                 : 'hover:bg-brand-sea/5'
                                                 }`}
                                         >
-                                            <td className="px-4 py-3 font-medium text-brand-midnight flex items-center gap-2">
+                                            <td className="px-4 py-3 font-medium text-brand-midnight dark:text-brand-turquoise flex items-center gap-2">
                                                 <MessageSquare className="h-3.5 w-3.5 text-brand-turquoise shrink-0" />
                                                 {session.title}
                                                 {activeSessionId === session.id && (
@@ -857,7 +860,7 @@ export function DocumentEditor({
                                 ].map(m => (
                                     <div key={m.label} className={`${card} flex flex-col`}>
                                         <div className="flex items-start justify-between mb-1">
-                                            <span className="text-sm font-semibold text-brand-midnight leading-tight">{m.label}</span>
+                                            <span className="text-sm font-semibold text-brand-midnight dark:text-white leading-tight">{m.label}</span>
                                             <div className="flex items-center gap-1">
                                                 <span className="text-xs text-brand-navy/40 shrink-0">{m.weight}</span>
                                                 <button
@@ -913,7 +916,7 @@ export function DocumentEditor({
                             <div className={`${card} flex items-center justify-between gap-6`}>
                                 <div>
                                     <div className="flex items-center gap-2 mb-1">
-                                        <h3 className="font-semibold text-brand-midnight flex items-center gap-2">
+                                        <h3 className="font-semibold text-brand-midnight dark:text-brand-turquoise flex items-center gap-2">
                                             <BarChart2 className="h-4 w-4 text-brand-turquoise" /> Wartość chatu (ROI)
                                         </h3>
                                         <button
@@ -967,13 +970,13 @@ export function DocumentEditor({
                     {/* Row 6: Tytuł | Tagi | Zarys sytuacji */}
                     <div className="grid grid-cols-3 gap-4">
                         <div className={card}>
-                            <h3 className="font-semibold text-brand-midnight flex items-center gap-2 mb-2">
+                            <h3 className="font-semibold text-brand-midnight dark:text-brand-turquoise flex items-center gap-2 mb-2">
                                 <BarChart2 className="h-4 w-4 text-brand-turquoise" /> Tytuł rozmowy
                             </h3>
                             <p className="text-sm text-brand-midnight font-medium">{chatAnalysis.title}</p>
                         </div>
                         <div className={card}>
-                            <h3 className="font-semibold text-brand-midnight flex items-center gap-2 mb-2">
+                            <h3 className="font-semibold text-brand-midnight dark:text-brand-turquoise flex items-center gap-2 mb-2">
                                 <Tag className="h-4 w-4 text-brand-turquoise" /> Tagi
                             </h3>
                             <div className="flex flex-wrap gap-1.5">
@@ -983,7 +986,7 @@ export function DocumentEditor({
                             </div>
                         </div>
                         <div className={card}>
-                            <h3 className="font-semibold text-brand-midnight flex items-center gap-2 mb-2">
+                            <h3 className="font-semibold text-brand-midnight dark:text-brand-turquoise flex items-center gap-2 mb-2">
                                 <Lightbulb className="h-4 w-4 text-brand-turquoise" /> Zarys sytuacji
                             </h3>
                             <p className="text-sm text-brand-navy/80 leading-relaxed">{chatAnalysis.situationSummary}</p>
@@ -993,7 +996,7 @@ export function DocumentEditor({
                     {/* Row 7: Przebieg i wynik | Otwarte kwestie */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className={card}>
-                            <h3 className="font-semibold text-brand-midnight flex items-center gap-2 mb-2">
+                            <h3 className="font-semibold text-brand-midnight dark:text-brand-turquoise flex items-center gap-2 mb-2">
                                 <CheckSquare className="h-4 w-4 text-brand-turquoise" /> Przebieg i wynik
                             </h3>
                             <div className="prose prose-sm max-w-none text-brand-navy/80">
@@ -1001,7 +1004,7 @@ export function DocumentEditor({
                             </div>
                         </div>
                         <div className={card}>
-                            <h3 className="font-semibold text-brand-midnight flex items-center gap-2 mb-2">
+                            <h3 className="font-semibold text-brand-midnight dark:text-brand-turquoise flex items-center gap-2 mb-2">
                                 <Wrench className="h-4 w-4 text-brand-turquoise" /> Otwarte kwestie
                             </h3>
                             <p className="text-sm text-brand-navy/80 leading-relaxed">{chatAnalysis.openIssues}</p>
@@ -1013,13 +1016,13 @@ export function DocumentEditor({
             {/* Unsaved Changes Warning Modal */}
             {showUnsavedModal && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-brand-midnight/50 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+                    <div className="bg-white dark:bg-[#050B14] border border-transparent dark:border-white/10 rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
                         <div className="p-6">
                             <div className="flex items-center gap-4 mb-4 text-amber-600">
                                 <div className="p-3 bg-amber-50 rounded-full">
                                     <AlertCircle className="w-6 h-6" />
                                 </div>
-                                <h3 className="text-xl font-bold text-brand-midnight">Niezapisane zmiany</h3>
+                                <h3 className="text-xl font-bold text-brand-midnight dark:text-white">Niezapisane zmiany</h3>
                             </div>
                             <p className="text-brand-navy/80 mb-6">
                                 Masz niezapisane zmiany w aktualnym dokumencie. Jeśli wyjdziesz z edytora bez zapisu, zmiany zostaną utracone. Czy na pewno chcesz opuścić edytor?
@@ -1027,7 +1030,7 @@ export function DocumentEditor({
                             <div className="flex justify-end gap-3 flex-wrap">
                                 <button
                                     onClick={() => setShowUnsavedModal(false)}
-                                    className="px-4 py-2 text-sm font-medium text-brand-navy hover:text-brand-midnight bg-brand-sea/5 hover:bg-brand-sea/10 border border-brand-sea/10 transition-colors rounded-lg"
+                                    className="px-4 py-2 text-sm font-medium text-brand-navy dark:text-gray-400 hover:text-brand-midnight dark:hover:text-white bg-brand-sea/5 dark:bg-white/5 hover:bg-brand-sea/10 dark:hover:bg-white/10 border border-brand-sea/10 dark:border-white/10 transition-colors rounded-lg"
                                 >
                                     Dokończ edycję
                                 </button>

@@ -83,17 +83,17 @@ export function TagsView({
         <div className="space-y-6">
             <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
-                    <h2 className="text-2xl font-bold text-brand-midnight tracking-tight">Tagi</h2>
-                    <p className="text-sm text-brand-navy/60 mt-0.5">{tags.length} unikalnych tagów w bazie</p>
+                    <h2 className="text-2xl font-bold text-brand-midnight dark:text-white tracking-tight">Tagi</h2>
+                    <p className="text-sm text-brand-navy/60 dark:text-gray-400 mt-0.5">{tags.length} unikalnych tagów w bazie</p>
                 </div>
             </div>
 
             {/* Search */}
             <div className="relative max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-navy/40" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-brand-navy/40 dark:text-gray-400" />
                 <input
                     type="text"
-                    className="block w-full pl-10 pr-3 py-2 border border-brand-sea/20 rounded-md text-sm bg-white placeholder-brand-navy/40 focus:outline-none focus:ring-1 focus:ring-brand-sea focus:border-brand-sea text-brand-midnight"
+                    className="block w-full pl-10 pr-3 py-2 border border-brand-sea/20 dark:border-white/10 rounded-md text-sm bg-white dark:bg-white/5 placeholder-brand-navy/40 dark:placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-brand-sea focus:border-brand-sea text-brand-midnight dark:text-white"
                     placeholder="Szukaj tagu..."
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
@@ -101,9 +101,9 @@ export function TagsView({
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-xl border border-brand-sea/20 shadow-sm overflow-hidden">
-                <table className="w-full text-sm text-left">
-                    <thead className="text-xs text-brand-navy uppercase bg-brand-sea/5 border-b border-brand-sea/10">
+            <div className="bg-white dark:bg-[#050B14]/50 rounded-xl border border-brand-sea/20 dark:border-white/10 shadow-sm overflow-hidden">
+                <table className="w-full text-sm text-left text-brand-midnight dark:text-gray-300">
+                    <thead className="text-xs text-brand-navy dark:text-gray-400 uppercase bg-brand-sea/5 dark:bg-white/5 border-b border-brand-sea/10 dark:border-white/10">
                         <tr>
                             <th className="px-6 py-4 font-semibold">
                                 <button onClick={() => toggleSort('name')} className="hover:text-brand-sea transition-colors">
@@ -134,12 +134,12 @@ export function TagsView({
                                     <div className="mx-auto w-12 h-12 bg-brand-sea/5 rounded-full flex items-center justify-center mb-3">
                                         <Tag className="h-6 w-6 text-brand-sea/50" />
                                     </div>
-                                    <p className="text-brand-midnight font-medium">Brak tagów</p>
+                                    <p className="text-brand-midnight dark:text-white font-medium">Brak tagów</p>
                                     <p className="text-brand-navy/50 text-xs mt-1">Tagi pojawią się po uruchomieniu Analizy AI na dokumentach</p>
                                 </td>
                             </tr>
                         ) : filtered.map(tag => (
-                            <tr key={tag.name} className="border-b border-brand-sea/5 hover:bg-brand-sea/5 transition-colors">
+                            <tr key={tag.name} className="border-b border-brand-sea/5 dark:border-white/5 hover:bg-brand-sea/5 dark:hover:bg-white/5 transition-colors">
                                 {/* Tag name — editable */}
                                 <td className="px-6 py-4">
                                     {editingTag === tag.name ? (
@@ -151,12 +151,12 @@ export function TagsView({
                                                 if (e.key === 'Enter') saveEdit(tag.name);
                                                 if (e.key === 'Escape') cancelEdit();
                                             }}
-                                            className="border border-brand-sea rounded-md px-2 py-1 text-sm text-brand-midnight focus:outline-none focus:ring-1 focus:ring-brand-sea w-48"
+                                            className="border border-brand-sea dark:border-brand-turquoise dark:bg-white/5 rounded-md px-2 py-1 text-sm text-brand-midnight dark:text-white focus:outline-none focus:ring-1 focus:ring-brand-sea w-48"
                                         />
                                     ) : (
                                         <button
                                             onClick={() => onNavigateToDocsWithTag(tag.name)}
-                                            className="inline-flex items-center gap-1.5 bg-brand-sea/10 text-brand-sea text-xs px-3 py-1.5 rounded-full hover:bg-brand-sea/20 transition-colors font-medium"
+                                            className="inline-flex items-center gap-1.5 bg-brand-sea/10 dark:bg-brand-sea/20 text-brand-sea dark:text-brand-turquoise text-xs px-3 py-1.5 rounded-full hover:bg-brand-sea/20 dark:hover:bg-brand-sea/30 transition-colors font-medium"
                                         >
                                             <Tag className="h-3 w-3" />
                                             {tag.name}
@@ -195,7 +195,7 @@ export function TagsView({
                                         <div className="flex items-center justify-end gap-1">
                                             <button
                                                 onClick={() => startEdit(tag)}
-                                                className="p-1.5 text-brand-navy/50 hover:text-brand-midnight hover:bg-brand-sea/10 rounded-md transition-colors"
+                                                className="p-1.5 text-brand-navy/50 dark:text-gray-400 hover:text-brand-midnight dark:hover:text-white hover:bg-brand-sea/10 dark:hover:bg-white/10 rounded-md transition-colors"
                                                 title="Zmień nazwę"
                                             >
                                                 <Pencil className="h-4 w-4" />

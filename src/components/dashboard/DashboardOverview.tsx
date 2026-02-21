@@ -54,11 +54,11 @@ export function DashboardOverview() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-bold tracking-tight text-brand-midnight">
+        <h2 className="text-2xl font-bold tracking-tight text-brand-midnight dark:text-white">
           Dashboard
         </h2>
         <div className="flex space-x-2">
-          <button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-sea disabled:pointer-events-none disabled:opacity-50 border border-brand-sea/20 bg-white hover:bg-brand-sea/5 hover:text-brand-navy h-10 px-4 py-2 text-brand-navy">
+          <button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-sea disabled:pointer-events-none disabled:opacity-50 border border-brand-sea/20 dark:border-white/10 bg-white dark:bg-white/5 hover:bg-brand-sea/5 dark:hover:bg-white/10 hover:text-brand-navy dark:hover:text-white h-10 px-4 py-2 text-brand-navy dark:text-gray-300">
             Download Report
           </button>
         </div>
@@ -68,7 +68,7 @@ export function DashboardOverview() {
         {stats.map((stat) => (
           <div
             key={stat.name}
-            className="rounded-xl border border-brand-sea/20 bg-white text-brand-midnight shadow-sm"
+            className="rounded-xl border border-brand-sea/20 dark:border-white/10 bg-white dark:bg-white/5 text-brand-midnight dark:text-white shadow-sm"
           >
             <div className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
               <h3 className="tracking-tight text-sm font-medium">
@@ -101,10 +101,10 @@ export function DashboardOverview() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <div className="col-span-4 rounded-xl border border-brand-sea/20 bg-white shadow-sm">
+        <div className="col-span-4 rounded-xl border border-brand-sea/20 dark:border-white/10 bg-white dark:bg-white/5 shadow-sm">
           <div className="p-6">
-            <h3 className="font-semibold leading-none tracking-tight text-brand-midnight">Overview</h3>
-            <p className="text-sm text-brand-navy/60 mt-2">
+            <h3 className="font-semibold leading-none tracking-tight text-brand-midnight dark:text-white">Overview</h3>
+            <p className="text-sm text-brand-navy/60 dark:text-gray-400 mt-2">
               Revenue overview for the past 7 months.
             </p>
           </div>
@@ -152,10 +152,10 @@ export function DashboardOverview() {
             </ResponsiveContainer>
           </div>
         </div>
-        <div className="col-span-3 rounded-xl border border-brand-sea/20 bg-white shadow-sm">
+        <div className="col-span-3 rounded-xl border border-brand-sea/20 dark:border-white/10 bg-white dark:bg-white/5 shadow-sm">
           <div className="p-6">
-            <h3 className="font-semibold leading-none tracking-tight text-brand-midnight">Recent Sales</h3>
-            <p className="text-sm text-brand-navy/60 mt-2">
+            <h3 className="font-semibold leading-none tracking-tight text-brand-midnight dark:text-white">Recent Sales</h3>
+            <p className="text-sm text-brand-navy/60 dark:text-gray-400 mt-2">
               You made 265 sales this month.
             </p>
           </div>
@@ -194,14 +194,14 @@ export function DashboardOverview() {
                 },
               ].map((sale) => (
                 <div key={sale.email} className="flex items-center">
-                  <div className="h-9 w-9 rounded-full bg-brand-sea/10 flex items-center justify-center font-semibold text-brand-navy">
+                  <div className="h-9 w-9 rounded-full bg-brand-sea/10 dark:bg-brand-sea/20 flex items-center justify-center font-semibold text-brand-navy dark:text-brand-turquoise">
                     {sale.initials}
                   </div>
                   <div className="ml-4 space-y-1">
-                    <p className="text-sm font-medium leading-none text-brand-midnight">{sale.name}</p>
-                    <p className="text-sm text-brand-navy/60">{sale.email}</p>
+                    <p className="text-sm font-medium leading-none text-brand-midnight dark:text-white">{sale.name}</p>
+                    <p className="text-sm text-brand-navy/60 dark:text-gray-400">{sale.email}</p>
                   </div>
-                  <div className="ml-auto font-medium text-brand-midnight">{sale.amount}</div>
+                  <div className="ml-auto font-medium text-brand-midnight dark:text-white">{sale.amount}</div>
                 </div>
               ))}
             </div>

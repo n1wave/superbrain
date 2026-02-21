@@ -30,7 +30,7 @@ export function TeamView() {
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h2 className="text-2xl font-bold tracking-tight text-brand-midnight flex items-center gap-3">
+                <h2 className="text-2xl font-bold tracking-tight text-brand-midnight dark:text-white flex items-center gap-3">
                     <Users className="w-6 h-6 text-brand-sea" />
                     Zespół i Dostęp
                 </h2>
@@ -78,15 +78,15 @@ export function TeamView() {
                 </div>
 
                 {/* API Access Settings */}
-                <div className="bg-white rounded-xl border border-brand-sea/20 shadow-sm p-8 relative flex flex-col">
+                <div className="bg-white dark:bg-[#050B14]/50 rounded-xl border border-brand-sea/20 dark:border-white/10 shadow-sm p-8 relative flex flex-col">
                     <div className="flex items-start justify-between mb-6">
                         <div className="flex items-center gap-3">
                             <div className="w-12 h-12 bg-brand-sea/10 rounded-lg flex items-center justify-center">
                                 <Server className="w-6 h-6 text-brand-sea" />
                             </div>
                             <div>
-                                <h3 className="text-lg font-semibold text-brand-midnight">Zewnętrzne API</h3>
-                                <p className="text-sm text-brand-navy/60">Dostęp do bazy dla asystentów Make/GPT.</p>
+                                <h3 className="text-lg font-semibold text-brand-midnight dark:text-white">Zewnętrzne API</h3>
+                                <p className="text-sm text-brand-navy/60 dark:text-gray-400">Dostęp do bazy dla asystentów Make/GPT.</p>
                             </div>
                         </div>
                         <button
@@ -112,8 +112,8 @@ export function TeamView() {
 
                         <div className="bg-brand-orange/10 rounded-lg p-4 border border-brand-orange/20 flex gap-3">
                             <AlertTriangle className="w-5 h-5 text-brand-orange shrink-0 mt-0.5" />
-                            <div className="text-sm text-brand-midnight leading-relaxed">
-                                <strong className="text-brand-bordeaux">Bezpieczeństwo:</strong> Kiedy nie integrujesz bazy lub nie korzystasz chwilowo z zewnętrznych automatów, po prostu wyłącz ten przełącznik. Odetnie to system w ułamku sekundy, nawet dla programów ze skradzionym kluczem.
+                            <div className="text-sm text-brand-midnight dark:text-gray-200 leading-relaxed">
+                                <strong className="text-brand-bordeaux dark:text-brand-orange">Bezpieczeństwo:</strong> Kiedy nie integrujesz bazy lub nie korzystasz chwilowo z zewnętrznych automatów, po prostu wyłącz ten przełącznik. Odetnie to system w ułamku sekundy, nawet dla programów ze skradzionym kluczem.
                             </div>
                         </div>
                     </div>

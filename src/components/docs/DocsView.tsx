@@ -304,6 +304,10 @@ export function DocsView({ initialTag, onTagFilterCleared, onUnsavedChanges, for
         );
     }
 
+    const btnBase = 'flex items-center justify-center gap-2 px-4 py-2 rounded-md font-medium transition-colors text-sm whitespace-nowrap';
+    const btnPrimary = `${btnBase} bg-brand-sea text-white hover:bg-brand-navy shadow-sm disabled:opacity-50 border border-transparent`;
+    const btnSecondary = `${btnBase} bg-white dark:bg-[#050B14] text-brand-midnight dark:text-white border border-brand-sea/20 dark:border-white/10 hover:bg-brand-sea/5 dark:hover:bg-white/5 shadow-sm disabled:opacity-50`;
+
     const tabBtn = (tab: Tab) =>
         `flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${activeTab === tab
             ? 'border-brand-sea text-brand-sea'
@@ -317,7 +321,7 @@ export function DocsView({ initialTag, onTagFilterCleared, onUnsavedChanges, for
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => setIsEditing(true)}
-                        className="flex items-center gap-2 bg-brand-sea text-white px-4 py-2 rounded-md hover:bg-brand-navy transition-colors font-medium shadow-sm"
+                        className={btnPrimary}
                     >
                         <Plus className="h-4 w-4" />
                         Dodaj
@@ -334,7 +338,7 @@ export function DocsView({ initialTag, onTagFilterCleared, onUnsavedChanges, for
                     <button
                         onClick={() => bulkFileInputRef.current?.click()}
                         disabled={isBulkUploading}
-                        className="flex items-center gap-2 bg-white text-brand-sea border border-brand-sea/20 px-4 py-2 rounded-md hover:bg-brand-sea/5 transition-colors font-medium shadow-sm disabled:opacity-50"
+                        className={btnSecondary}
                     >
                         {isBulkUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                         {isBulkUploading ? 'Wgrywanie...' : 'Dodaj bulk'}
@@ -360,18 +364,18 @@ export function DocsView({ initialTag, onTagFilterCleared, onUnsavedChanges, for
                     {/* Search bar outside card */}
                     <div className="relative max-w-md">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Search className="h-4 w-4 text-brand-navy/40" />
+                            <Search className="h-4 w-4 text-brand-navy/40 dark:text-gray-400" />
                         </div>
                         <input
                             type="text"
-                            className="block w-full pl-10 pr-3 py-2 border border-brand-sea/20 rounded-md leading-5 bg-white placeholder-brand-navy/40 focus:outline-none focus:ring-1 focus:ring-brand-sea focus:border-brand-sea sm:text-sm transition-colors text-brand-midnight"
+                            className="block w-full pl-10 pr-3 py-2 border border-brand-sea/20 dark:border-white/10 rounded-md leading-5 bg-white dark:bg-white/5 placeholder-brand-navy/40 dark:placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-brand-sea focus:border-brand-sea sm:text-sm transition-colors text-brand-midnight dark:text-white"
                             placeholder="Szukaj dokumentów po nazwie lub opisie..."
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
                         />
                     </div>
 
-                    <div className="bg-white p-6 rounded-xl border border-brand-sea/20 shadow-sm space-y-6">
+                    <div className="bg-white dark:bg-[#050B14]/50 p-6 rounded-xl border border-brand-sea/20 dark:border-white/10 shadow-sm space-y-6">
                         {/* Tag filter & Firmowy */}
                         <div className="space-y-3">
 
@@ -394,7 +398,7 @@ export function DocsView({ initialTag, onTagFilterCleared, onUnsavedChanges, for
                                         <button
                                             key={tag}
                                             onClick={() => setActiveTagFilter(tag)}
-                                            className="inline-flex items-center text-xs bg-brand-sea/10 text-brand-sea px-2.5 py-1 rounded-full hover:bg-brand-sea/20 transition-colors"
+                                            className="inline-flex items-center text-xs bg-brand-sea/10 dark:bg-brand-sea/20 text-brand-sea dark:text-brand-turquoise px-2.5 py-1 rounded-full hover:bg-brand-sea/20 dark:hover:bg-brand-sea/30 transition-colors"
                                         >
                                             {tag}
                                         </button>
@@ -410,13 +414,13 @@ export function DocsView({ initialTag, onTagFilterCleared, onUnsavedChanges, for
                                     onChange={e => setShowCompanyOnly(e.target.checked)}
                                     className="w-4 h-4 rounded accent-brand-sea cursor-pointer"
                                 />
-                                <span className="text-sm text-brand-midnight font-medium">N1</span>
+                                <span className="text-sm text-brand-midnight dark:text-white font-medium">N1</span>
                             </label>
                         </div>
 
-                        <div className="overflow-x-auto rounded-lg border border-brand-sea/10">
-                            <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-brand-navy uppercase bg-brand-sea/5 border-b border-brand-sea/10">
+                        <div className="overflow-x-auto rounded-lg border border-brand-sea/10 dark:border-white/10">
+                            <table className="w-full text-sm text-left text-brand-midnight dark:text-gray-300">
+                                <thead className="text-xs text-brand-navy dark:text-gray-400 uppercase bg-brand-sea/5 dark:bg-white/5 border-b border-brand-sea/10 dark:border-white/10">
                                     <tr>
                                         <th scope="col" className="px-6 py-4 font-semibold">
                                             <button onClick={() => toggleSort('name')} className="hover:text-brand-sea transition-colors">
@@ -455,18 +459,18 @@ export function DocsView({ initialTag, onTagFilterCleared, onUnsavedChanges, for
                                                 <div className="mx-auto w-12 h-12 bg-brand-sea/5 rounded-full flex items-center justify-center mb-3">
                                                     <FileText className="h-6 w-6 text-brand-sea/50" />
                                                 </div>
-                                                <p className="text-brand-midnight font-medium">Brak dodanych dokumentów</p>
-                                                <p className="text-brand-navy/50 text-sm mt-1">Dodaj swój pierwszy plik z dysku, aby wczytać tekst.</p>
+                                                <p className="text-brand-midnight dark:text-white font-medium">Brak dodanych dokumentów</p>
+                                                <p className="text-brand-navy/50 dark:text-gray-400 text-sm mt-1">Dodaj swój pierwszy plik z dysku, aby wczytać tekst.</p>
                                             </td>
                                         </tr>
                                     ) : (
                                         filteredDocs.map(doc => (
                                             <tr
                                                 key={doc.id}
-                                                className="bg-white border-b border-brand-sea/5 hover:bg-brand-sea/5 cursor-pointer transition-colors"
+                                                className="bg-white dark:bg-transparent border-b border-brand-sea/5 dark:border-white/5 hover:bg-brand-sea/5 dark:hover:bg-white/5 cursor-pointer transition-colors"
                                                 onClick={() => setSelectedDoc(doc)}
                                             >
-                                                <td className="px-6 py-4 font-medium text-brand-midnight flex items-center gap-3">
+                                                <td className="px-6 py-4 font-medium text-brand-midnight dark:text-brand-turquoise flex items-center gap-3">
                                                     <div className="p-2 bg-brand-sea/10 rounded-md text-brand-sea shrink-0">
                                                         <FileText className="h-4 w-4" />
                                                     </div>
@@ -480,7 +484,7 @@ export function DocsView({ initialTag, onTagFilterCleared, onUnsavedChanges, for
                                                                 if (e.key === 'Enter') saveRename(e as any, doc);
                                                                 if (e.key === 'Escape') cancelRename(e as any);
                                                             }}
-                                                            className="border border-brand-sea rounded-md px-2 py-1 text-sm text-brand-midnight focus:outline-none focus:ring-1 focus:ring-brand-sea w-full max-w-[250px]"
+                                                            className="border border-brand-sea dark:border-white/20 rounded-md px-2 py-1 text-sm text-brand-midnight dark:text-white dark:bg-white/5 focus:outline-none focus:ring-1 focus:ring-brand-sea w-full max-w-[250px]"
                                                         />
                                                     ) : (
                                                         <span className="truncate max-w-[250px]">{doc.name}</span>
@@ -489,8 +493,8 @@ export function DocsView({ initialTag, onTagFilterCleared, onUnsavedChanges, for
                                                         <span className="shrink-0 text-[10px] bg-brand-bordeaux/10 text-brand-bordeaux px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide">Firmowy</span>
                                                     )}
                                                 </td>
-                                                <td className="px-6 py-4 text-brand-navy/80 text-[12px] leading-tight align-top">
-                                                    {doc.tldr ? <div className="whitespace-pre-wrap">{doc.tldr}</div> : <span className="text-brand-navy/30">—</span>}
+                                                <td className="px-6 py-4 text-brand-navy/80 dark:text-gray-300 text-[12px] leading-tight align-top">
+                                                    {doc.tldr ? <div className="whitespace-pre-wrap">{doc.tldr}</div> : <span className="text-brand-navy/30 dark:text-gray-600">—</span>}
                                                 </td>
                                                 <td className="px-6 py-4 align-top">
                                                     <div className="flex flex-wrap gap-1.5">
@@ -512,7 +516,7 @@ export function DocsView({ initialTag, onTagFilterCleared, onUnsavedChanges, for
                                                         )}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 text-brand-navy/60 whitespace-nowrap text-center">
+                                                <td className="px-6 py-4 text-brand-navy/60 dark:text-gray-400 whitespace-nowrap text-center">
                                                     {formatDate(doc.createdAt)}
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
@@ -521,14 +525,14 @@ export function DocsView({ initialTag, onTagFilterCleared, onUnsavedChanges, for
                                                             <button
                                                                 onClick={e => saveRename(e, doc)}
                                                                 disabled={isRenaming}
-                                                                className="p-1.5 text-green-600 hover:bg-green-50 rounded-md transition-colors disabled:opacity-50"
+                                                                className="p-1.5 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-md transition-colors disabled:opacity-50"
                                                                 title="Zapisz"
                                                             >
                                                                 {isRenaming ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                                                             </button>
                                                             <button
                                                                 onClick={cancelRename}
-                                                                className="p-1.5 text-brand-navy/60 hover:bg-brand-sea/10 rounded-md transition-colors"
+                                                                className="p-1.5 text-brand-navy/60 dark:text-gray-400 hover:bg-brand-sea/10 dark:hover:bg-white/10 rounded-md transition-colors"
                                                                 title="Anuluj"
                                                             >
                                                                 <X className="h-4 w-4" />
@@ -546,7 +550,7 @@ export function DocsView({ initialTag, onTagFilterCleared, onUnsavedChanges, for
                                                             </button>
                                                             <button
                                                                 onClick={e => startRename(e, doc)}
-                                                                className="p-1.5 text-brand-navy/50 hover:text-brand-midnight hover:bg-brand-sea/10 rounded-md transition-colors"
+                                                                className="p-1.5 text-brand-navy/50 dark:text-gray-400 hover:text-brand-midnight dark:hover:text-white hover:bg-brand-sea/10 dark:hover:bg-white/10 rounded-md transition-colors"
                                                                 title="Zmień nazwę"
                                                             >
                                                                 <Pencil className="h-4 w-4" />
