@@ -1,10 +1,14 @@
-import { useState, useEffect } from 'react';
-import { Trash2, Search, Plus, FileText, MessageSquare, Tag, X, Pencil, Loader2, Check } from 'lucide-react';
-import { getDocuments, deleteDocument, updateDocument } from '../../lib/docs';
+import { useState, useEffect, useRef } from 'react';
+import { Trash2, Search, Plus, FileText, MessageSquare, Tag, X, Pencil, Loader2, Check, Upload, Sparkles } from 'lucide-react';
+import mammoth from 'mammoth';
+import TurndownService from 'turndown';
+import { getDocuments, deleteDocument, updateDocument, saveDocument } from '../../lib/docs';
 import type { DocumentBase } from '../../lib/docs';
 import { DocumentEditor, type DocumentEditorHandle } from './DocumentEditor';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { ChatsView } from './ChatsView';
+
+import { analyzeDocumentWithAI } from '../../lib/ai';
 
 type Tab = 'docs' | 'chats';
 
@@ -18,6 +22,9 @@ export function DocsView({ initialTag, onTagFilterCleared, onUnsavedChanges, for
     const [activeTab, setActiveTab] = useState<Tab>('docs');
     const [documents, setDocuments] = useState<DocumentBase[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isBulkUploading, setIsBulkUploading] = useState(false);
+    const bulkFileInputRef = useRef<HTMLInputElement>(null);
+    const [analyzingDocId, setAnalyzingDocId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeTagFilter, setActiveTagFilter] = useState<string | null>(initialTag ?? null);
     const [showCompanyOnly, setShowCompanyOnly] = useState(false);
@@ -48,6 +55,68 @@ export function DocsView({ initialTag, onTagFilterCleared, onUnsavedChanges, for
             console.error("Error fetching documents:", error);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleBulkUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
+
+        setIsBulkUploading(true);
+        let uploadedCount = 0;
+
+        try {
+            for (const file of files) {
+                let content = '';
+
+                if (file.name.endsWith('.docx')) {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const result = await mammoth.convertToHtml({ arrayBuffer }, {
+                        ignoreEmptyParagraphs: false,
+                        convertImage: mammoth.images.imgElement(() => Promise.resolve({ src: '' }))
+                    });
+                    const td = new TurndownService({ headingStyle: 'atx', bulletListMarker: '-', codeBlockStyle: 'fenced' });
+                    td.remove('img');
+                    content = td.turndown(result.value);
+                } else if (file.name.endsWith('.txt') || file.type === 'text/plain') {
+                    content = await file.text();
+                } else {
+                    console.warn(`Pominięto ${file.name}: Niewspierany format.`);
+                    continue;
+                }
+
+                if (!content.trim()) continue;
+
+                await saveDocument({
+                    name: file.name,
+                    description: '',
+                    content,
+                    size: file.size,
+                    type: file.type || 'text/plain',
+                    documentType: '',
+                    mainTopic: '',
+                    tags: [],
+                    tldr: '',
+                    keyFindings: [],
+                    usage: '',
+                    actionItems: [],
+                    isCompany: false,
+                });
+
+                uploadedCount++;
+            }
+
+            if (uploadedCount > 0) {
+                await fetchDocuments();
+            } else {
+                alert('Nie udało się wczytać żadnego pliku (nieobsługiwany format lub pusty plik).');
+            }
+        } catch (error) {
+            console.error("Błąd podczas bulk uploadu:", error);
+            alert("Wystąpił błąd podczas wgrywania plików.");
+        } finally {
+            setIsBulkUploading(false);
+            if (bulkFileInputRef.current) bulkFileInputRef.current.value = '';
         }
     };
 
@@ -116,6 +185,41 @@ export function DocsView({ initialTag, onTagFilterCleared, onUnsavedChanges, for
             alert("Nie udało się zmienić nazwy dokumentu.");
         } finally {
             setIsRenaming(false);
+        }
+    };
+
+    const handleInlineAnalyze = async (e: React.MouseEvent, doc: DocumentBase) => {
+        e.stopPropagation();
+        if (!doc.id || !doc.content) {
+            alert('Dokument nie posiada treści do analizy.');
+            return;
+        }
+
+        setAnalyzingDocId(doc.id);
+        try {
+            const result = await analyzeDocumentWithAI(doc.content);
+            const updates = {
+                documentType: result.documentType || '',
+                mainTopic: result.mainTopic || '',
+                tags: result.tags || [],
+                tldr: result.tldr || '',
+                keyFindings: result.keyFindings || [],
+                usage: result.usage || '',
+                actionItems: result.actionItems || [],
+                docMetrics: result.metrics,
+            };
+
+            await updateDocument(doc.id, updates);
+            setDocuments(docs => docs.map(d => d.id === doc.id ? { ...d, ...updates } : d));
+
+            if (activeTagFilter && !updates.tags.includes(activeTagFilter)) {
+                // if we filtered by tag, it might disappear from the view, which is fine
+            }
+        } catch (error) {
+            console.error("Błąd podczas analizy AI:", error);
+            alert("Nie udało się przeanalizować dokumentu.");
+        } finally {
+            setAnalyzingDocId(null);
         }
     };
 
@@ -210,13 +314,32 @@ export function DocsView({ initialTag, onTagFilterCleared, onUnsavedChanges, for
         <div className="space-y-6">
             {/* Header row: Add button + tabs */}
             <div className="flex items-center justify-between">
-                <button
-                    onClick={() => setIsEditing(true)}
-                    className="flex items-center gap-2 bg-brand-sea text-white px-4 py-2 rounded-md hover:bg-brand-navy transition-colors font-medium shadow-sm"
-                >
-                    <Plus className="h-4 w-4" />
-                    Dodaj z dysku
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => setIsEditing(true)}
+                        className="flex items-center gap-2 bg-brand-sea text-white px-4 py-2 rounded-md hover:bg-brand-navy transition-colors font-medium shadow-sm"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Dodaj
+                    </button>
+
+                    <input
+                        ref={bulkFileInputRef}
+                        type="file"
+                        accept=".txt,.docx,text/plain"
+                        multiple
+                        onChange={handleBulkUpload}
+                        className="hidden"
+                    />
+                    <button
+                        onClick={() => bulkFileInputRef.current?.click()}
+                        disabled={isBulkUploading}
+                        className="flex items-center gap-2 bg-white text-brand-sea border border-brand-sea/20 px-4 py-2 rounded-md hover:bg-brand-sea/5 transition-colors font-medium shadow-sm disabled:opacity-50"
+                    >
+                        {isBulkUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                        {isBulkUploading ? 'Wgrywanie...' : 'Dodaj bulk'}
+                    </button>
+                </div>
 
                 {/* Tab switcher */}
                 <div className="flex border-b border-brand-sea/10">
@@ -287,7 +410,7 @@ export function DocsView({ initialTag, onTagFilterCleared, onUnsavedChanges, for
                                     onChange={e => setShowCompanyOnly(e.target.checked)}
                                     className="w-4 h-4 rounded accent-brand-sea cursor-pointer"
                                 />
-                                <span className="text-sm text-brand-midnight font-medium">Tylko dokumenty firmowe</span>
+                                <span className="text-sm text-brand-midnight font-medium">N1</span>
                             </label>
                         </div>
 
@@ -414,6 +537,14 @@ export function DocsView({ initialTag, onTagFilterCleared, onUnsavedChanges, for
                                                     ) : (
                                                         <div className="flex items-center justify-end gap-1">
                                                             <button
+                                                                onClick={e => handleInlineAnalyze(e, doc)}
+                                                                disabled={analyzingDocId === doc.id}
+                                                                className="p-1.5 text-brand-turquoise hover:text-white hover:bg-brand-turquoise rounded-md transition-colors disabled:opacity-50"
+                                                                title="Analiza AI"
+                                                            >
+                                                                {analyzingDocId === doc.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                                                            </button>
+                                                            <button
                                                                 onClick={e => startRename(e, doc)}
                                                                 className="p-1.5 text-brand-navy/50 hover:text-brand-midnight hover:bg-brand-sea/10 rounded-md transition-colors"
                                                                 title="Zmień nazwę"
@@ -438,12 +569,15 @@ export function DocsView({ initialTag, onTagFilterCleared, onUnsavedChanges, for
                         </div>
                     </div>
                 </div>
-            )}
+            )
+            }
 
             {/* ── Chats tab ── */}
-            {activeTab === 'chats' && (
-                <ChatsView onOpenDocSession={(docId, sessionId) => handleOpenDocFromChat(docId, sessionId)} />
-            )}
+            {
+                activeTab === 'chats' && (
+                    <ChatsView onOpenDocSession={(docId, sessionId) => handleOpenDocFromChat(docId, sessionId)} />
+                )
+            }
 
             <ConfirmDeleteModal
                 isOpen={deleteModalOpen}
@@ -452,6 +586,6 @@ export function DocsView({ initialTag, onTagFilterCleared, onUnsavedChanges, for
                 docName={docToDelete?.name || ''}
                 isDeleting={isDeleting}
             />
-        </div>
+        </div >
     );
 }

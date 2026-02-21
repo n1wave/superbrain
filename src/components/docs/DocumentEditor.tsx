@@ -4,7 +4,7 @@ import TurndownService from 'turndown';
 import {
     ArrowLeft, Save, Eye, Edit3, Sparkles,
     Tag, Lightbulb, Wrench, CheckSquare, BookOpen, Upload,
-    MessageSquare, Send, Loader2, BarChart2, Clock, Plus
+    MessageSquare, Send, Loader2, BarChart2, Clock, Plus, Pencil, Check, X, AlertCircle
 } from 'lucide-react';
 import {
     saveDocument, updateDocument,
@@ -70,7 +70,15 @@ export function DocumentEditor({
     const [isChatLoading, setIsChatLoading] = useState(false);
     const [sessionsLoaded, setSessionsLoaded] = useState(false);
 
+    // ── Metric Editing state ──
+    const [editingDocMetric, setEditingDocMetric] = useState<keyof NonNullable<DocumentBase['docMetrics']> | null>(null);
+    const [editingDocMetricValue, setEditingDocMetricValue] = useState<string>('');
+    const [editingChatMetric, setEditingChatMetric] = useState<keyof ChatAnalysis['metrics'] | null>(null);
+    const [editingChatMetricValue, setEditingChatMetricValue] = useState<string>('');
+
     // ── Track unsaved changes ──
+    const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+
     const hasUnsavedChanges = useMemo(() => {
         if (!initialDoc) {
             // New document: any content means unsaved changes
@@ -358,7 +366,10 @@ export function DocumentEditor({
 
             {/* ══ HEADER ══ */}
             <div className="flex items-center gap-3 flex-wrap">
-                <button onClick={onBack} className="p-2 hover:bg-brand-sea/5 rounded-full transition-colors text-brand-sea shrink-0">
+                <button
+                    onClick={() => hasUnsavedChanges ? setShowUnsavedModal(true) : onBack()}
+                    className="p-2 hover:bg-brand-sea/5 rounded-full transition-colors text-brand-sea shrink-0"
+                >
                     <ArrowLeft className="h-5 w-5" />
                 </button>
                 <h2 className="text-xl font-bold tracking-tight text-brand-midnight flex-1 min-w-0 truncate">
@@ -372,7 +383,7 @@ export function DocumentEditor({
                         onChange={e => setIsCompany(e.target.checked)}
                         className="w-4 h-4 rounded border-brand-sea/30 text-brand-sea accent-brand-sea cursor-pointer"
                     />
-                    <span className="text-sm text-brand-midnight font-medium whitespace-nowrap">Dok. firmowy</span>
+                    <span className="text-sm text-brand-midnight font-medium whitespace-nowrap">N1</span>
                 </label>
                 <input
                     value={name}
@@ -404,24 +415,28 @@ export function DocumentEditor({
                     <div className="grid grid-cols-4 gap-4">
                         {[
                             {
+                                id: 'actionability' as const,
                                 label: 'Gotowość do działania',
                                 score: docMetrics.actionability,
                                 note: docMetrics.actionabilityNote,
                                 desc: 'czy dokument to gotowa instrukcja SOP/checklista, czy tylko ramy strategiczne?',
                             },
                             {
+                                id: 'impact' as const,
                                 label: 'Siła wpływu',
                                 score: docMetrics.impact,
                                 note: docMetrics.impactNote,
                                 desc: 'czy to game-changer w swojej dziedzinie, czy drobna optymalizacja?',
                             },
                             {
+                                id: 'ease' as const,
                                 label: 'Łatwość wdrożenia',
                                 score: docMetrics.ease,
                                 note: docMetrics.easeNote,
                                 desc: 'im wyżej, tym łatwiej — czy możesz wdrożyć to dziś wieczór?',
                             },
                             {
+                                id: 'evergreen' as const,
                                 label: 'Termin ważności',
                                 score: docMetrics.evergreen,
                                 note: docMetrics.evergreenNote,
@@ -431,13 +446,44 @@ export function DocumentEditor({
                             <div key={m.label} className={`${card} flex flex-col`}>
                                 <div className="flex items-start justify-between mb-1">
                                     <span className="text-sm font-semibold text-brand-midnight leading-tight">{m.label}</span>
+                                    <button
+                                        onClick={() => { setEditingDocMetric(m.id); setEditingDocMetricValue(String(m.score)); }}
+                                        className="text-brand-sea/50 hover:text-brand-sea p-1"
+                                    >
+                                        <Pencil className="w-3 h-3" />
+                                    </button>
                                 </div>
-                                <div className="flex items-center gap-2 my-1.5">
-                                    <span className="text-2xl font-bold text-brand-sea">{m.score}</span>
-                                    <span className="text-brand-navy/40 text-sm">/10</span>
-                                    <div className="flex-1 bg-brand-sea/10 rounded-full h-1.5 ml-1">
-                                        <div className="bg-brand-sea rounded-full h-1.5 transition-all" style={{ width: `${m.score * 10}%` }} />
-                                    </div>
+                                <div className="flex items-center gap-2 my-1.5 min-h-[28px]">
+                                    {editingDocMetric === m.id ? (
+                                        <div className="flex items-center gap-1 w-full">
+                                            <input
+                                                type="number" min="1" max="10" step="0.1" autoFocus
+                                                value={editingDocMetricValue}
+                                                onChange={e => setEditingDocMetricValue(e.target.value)}
+                                                className="w-16 border border-brand-sea/30 rounded px-1 text-sm font-bold text-brand-sea outline-none focus:border-brand-sea"
+                                            />
+                                            <button
+                                                onClick={() => {
+                                                    setDocMetrics(prev => prev ? { ...prev, [m.id]: Number(editingDocMetricValue) || 0 } : prev);
+                                                    setEditingDocMetric(null);
+                                                }}
+                                                className="text-green-600 hover:bg-green-50 rounded p-1"
+                                            >
+                                                <Check className="w-4 h-4" />
+                                            </button>
+                                            <button onClick={() => setEditingDocMetric(null)} className="text-brand-navy/60 hover:bg-brand-sea/10 rounded p-1">
+                                                <X className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <span className="text-2xl font-bold text-brand-sea">{m.score}</span>
+                                            <span className="text-brand-navy/40 text-sm">/10</span>
+                                            <div className="flex-1 bg-brand-sea/10 rounded-full h-1.5 ml-1">
+                                                <div className="bg-brand-sea rounded-full h-1.5 transition-all" style={{ width: `${m.score * 10}%` }} />
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                                 {m.note && <p className="text-[11px] text-brand-navy/70 leading-snug italic border-l-2 border-brand-sea/20 pl-2 mb-1">{m.note}</p>}
                                 <p className="text-[10px] text-brand-navy/35 leading-snug mt-auto">{m.desc}</p>
@@ -448,17 +494,50 @@ export function DocumentEditor({
                     {/* Overall score */}
                     <div className={`${card} flex items-center justify-between gap-6`}>
                         <div>
-                            <h3 className="font-semibold text-brand-midnight flex items-center gap-2 mb-0.5">
-                                <BarChart2 className="h-4 w-4 text-brand-turquoise" /> Ocena ogólna dokumentu
-                            </h3>
+                            <div className="flex items-center gap-2 mb-0.5">
+                                <h3 className="font-semibold text-brand-midnight flex items-center gap-2">
+                                    <BarChart2 className="h-4 w-4 text-brand-turquoise" /> Ocena ogólna dokumentu
+                                </h3>
+                                <button
+                                    onClick={() => { setEditingDocMetric('overall'); setEditingDocMetricValue(String(docMetrics.overall.toFixed(1))); }}
+                                    className="text-brand-sea/50 hover:text-brand-sea p-1"
+                                >
+                                    <Pencil className="w-3 h-3" />
+                                </button>
+                            </div>
                             <p className="text-xs text-brand-navy/50">Średnia arytmetyczna 4 metryk: Gotowość · Wpływ · Łatwość · Trwałość</p>
                         </div>
                         <div className="shrink-0 text-right">
-                            <span className="text-4xl font-bold text-brand-sea">{docMetrics.overall.toFixed(1)}</span>
-                            <span className="text-brand-navy/40 text-lg ml-1">/10</span>
-                            <div className="w-40 bg-brand-sea/10 rounded-full h-2 mt-1">
-                                <div className="bg-gradient-to-r from-brand-turquoise to-brand-sea rounded-full h-2 transition-all" style={{ width: `${docMetrics.overall * 10}%` }} />
-                            </div>
+                            {editingDocMetric === 'overall' ? (
+                                <div className="flex items-center justify-end gap-1 mb-1">
+                                    <input
+                                        type="number" min="1" max="10" step="0.1" autoFocus
+                                        value={editingDocMetricValue}
+                                        onChange={e => setEditingDocMetricValue(e.target.value)}
+                                        className="w-20 border border-brand-sea/30 rounded px-1 text-2xl font-bold text-brand-sea outline-none focus:border-brand-sea text-right"
+                                    />
+                                    <button
+                                        onClick={() => {
+                                            setDocMetrics(prev => prev ? { ...prev, overall: Number(editingDocMetricValue) || 0 } : prev);
+                                            setEditingDocMetric(null);
+                                        }}
+                                        className="text-green-600 hover:bg-green-50 rounded p-1"
+                                    >
+                                        <Check className="w-5 h-5" />
+                                    </button>
+                                    <button onClick={() => setEditingDocMetric(null)} className="text-brand-navy/60 hover:bg-brand-sea/10 rounded p-1">
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            ) : (
+                                <>
+                                    <span className="text-4xl font-bold text-brand-sea">{docMetrics.overall.toFixed(1)}</span>
+                                    <span className="text-brand-navy/40 text-lg ml-1">/10</span>
+                                    <div className="w-40 bg-brand-sea/10 rounded-full h-2 mt-1">
+                                        <div className="bg-gradient-to-r from-brand-turquoise to-brand-sea rounded-full h-2 transition-all" style={{ width: `${docMetrics.overall * 10}%` }} />
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 </>
@@ -744,6 +823,7 @@ export function DocumentEditor({
                             <div className="grid grid-cols-4 gap-4">
                                 {[
                                     {
+                                        id: 'timeSavings' as const,
                                         label: 'Zaoszczędzony czas',
                                         score: chatAnalysis.metrics.timeSavings,
                                         weight: '×0.4',
@@ -751,6 +831,7 @@ export function DocumentEditor({
                                         desc: 'ile godzin lub dni musiałbyś poświęcić na samodzielne szukanie i testowanie, gdybyś nie miał pomocy AI?',
                                     },
                                     {
+                                        id: 'completeness' as const,
                                         label: 'Gotowość do użycia',
                                         score: chatAnalysis.metrics.completeness,
                                         weight: '×0.3',
@@ -758,6 +839,7 @@ export function DocumentEditor({
                                         desc: 'czy dostałeś finalne gotowe rozwiązanie podane na tacy, czy tylko ogólną wskazówkę do dalszej pracy?',
                                     },
                                     {
+                                        id: 'criticality' as const,
                                         label: 'Waga problemu',
                                         score: chatAnalysis.metrics.criticality,
                                         weight: '×0.2',
@@ -765,6 +847,7 @@ export function DocumentEditor({
                                         desc: 'czy ten problem całkowicie wstrzymywał twoją pracę, czy była to luźna ciekawostka lub opcjonalna poprawka?',
                                     },
                                     {
+                                        id: 'transferability' as const,
                                         label: 'Przydatność na przyszłość',
                                         score: chatAnalysis.metrics.transferability,
                                         weight: '×0.1',
@@ -775,14 +858,50 @@ export function DocumentEditor({
                                     <div key={m.label} className={`${card} flex flex-col`}>
                                         <div className="flex items-start justify-between mb-1">
                                             <span className="text-sm font-semibold text-brand-midnight leading-tight">{m.label}</span>
-                                            <span className="text-xs text-brand-navy/40 ml-1 shrink-0">{m.weight}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 my-1.5">
-                                            <span className="text-2xl font-bold text-brand-sea">{m.score}</span>
-                                            <span className="text-brand-navy/40 text-sm">/10</span>
-                                            <div className="flex-1 bg-brand-sea/10 rounded-full h-1.5 ml-1">
-                                                <div className="bg-brand-sea rounded-full h-1.5 transition-all" style={{ width: `${m.score * 10}%` }} />
+                                            <div className="flex items-center gap-1">
+                                                <span className="text-xs text-brand-navy/40 shrink-0">{m.weight}</span>
+                                                <button
+                                                    onClick={() => { setEditingChatMetric(m.id); setEditingChatMetricValue(String(m.score)); }}
+                                                    className="text-brand-sea/50 hover:text-brand-sea p-1"
+                                                >
+                                                    <Pencil className="w-3 h-3" />
+                                                </button>
                                             </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 my-1.5 min-h-[28px]">
+                                            {editingChatMetric === m.id ? (
+                                                <div className="flex items-center gap-1 w-full">
+                                                    <input
+                                                        type="number" min="1" max="10" step="0.1" autoFocus
+                                                        value={editingChatMetricValue}
+                                                        onChange={e => setEditingChatMetricValue(e.target.value)}
+                                                        className="w-16 border border-brand-sea/30 rounded px-1 text-sm font-bold text-brand-sea outline-none focus:border-brand-sea"
+                                                    />
+                                                    <button
+                                                        onClick={() => {
+                                                            setChatAnalysis(prev => prev ? {
+                                                                ...prev,
+                                                                metrics: { ...prev.metrics, [m.id]: Number(editingChatMetricValue) || 0 }
+                                                            } : prev);
+                                                            setEditingChatMetric(null);
+                                                        }}
+                                                        className="text-green-600 hover:bg-green-50 rounded p-1"
+                                                    >
+                                                        <Check className="w-4 h-4" />
+                                                    </button>
+                                                    <button onClick={() => setEditingChatMetric(null)} className="text-brand-navy/60 hover:bg-brand-sea/10 rounded p-1">
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <span className="text-2xl font-bold text-brand-sea">{m.score}</span>
+                                                    <span className="text-brand-navy/40 text-sm">/10</span>
+                                                    <div className="flex-1 bg-brand-sea/10 rounded-full h-1.5 ml-1">
+                                                        <div className="bg-brand-sea rounded-full h-1.5 transition-all" style={{ width: `${m.score * 10}%` }} />
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
                                         {m.note && <p className="text-[11px] text-brand-navy/70 leading-snug italic border-l-2 border-brand-sea/20 pl-2 mb-1">{m.note}</p>}
                                         <p className="text-[10px] text-brand-navy/35 leading-snug mt-auto">{m.desc}</p>
@@ -793,17 +912,53 @@ export function DocumentEditor({
                             {/* ROI summary */}
                             <div className={`${card} flex items-center justify-between gap-6`}>
                                 <div>
-                                    <h3 className="font-semibold text-brand-midnight flex items-center gap-2 mb-1">
-                                        <BarChart2 className="h-4 w-4 text-brand-turquoise" /> Wartość chatu (ROI)
-                                    </h3>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <h3 className="font-semibold text-brand-midnight flex items-center gap-2">
+                                            <BarChart2 className="h-4 w-4 text-brand-turquoise" /> Wartość chatu (ROI)
+                                        </h3>
+                                        <button
+                                            onClick={() => { setEditingChatMetric('roi'); setEditingChatMetricValue(String(chatAnalysis.metrics.roi.toFixed(1))); }}
+                                            className="text-brand-sea/50 hover:text-brand-sea p-1"
+                                        >
+                                            <Pencil className="w-3 h-3" />
+                                        </button>
+                                    </div>
                                     <p className="text-xs text-brand-navy/50">{chatAnalysis.metrics.roiBreakdown}</p>
                                 </div>
                                 <div className="shrink-0 text-right">
-                                    <span className="text-4xl font-bold text-brand-sea">{chatAnalysis.metrics.roi.toFixed(1)}</span>
-                                    <span className="text-brand-navy/40 text-lg ml-1">/10</span>
-                                    <div className="w-40 bg-brand-sea/10 rounded-full h-2 mt-1">
-                                        <div className="bg-gradient-to-r from-brand-turquoise to-brand-sea rounded-full h-2 transition-all" style={{ width: `${chatAnalysis.metrics.roi * 10}%` }} />
-                                    </div>
+                                    {editingChatMetric === 'roi' ? (
+                                        <div className="flex items-center justify-end gap-1 mb-1">
+                                            <input
+                                                type="number" min="1" max="10" step="0.1" autoFocus
+                                                value={editingChatMetricValue}
+                                                onChange={e => setEditingChatMetricValue(e.target.value)}
+                                                className="w-20 border border-brand-sea/30 rounded px-1 text-2xl font-bold text-brand-sea outline-none focus:border-brand-sea text-right"
+                                            />
+                                            <button
+                                                onClick={() => {
+                                                    setChatAnalysis(prev => prev ? {
+                                                        ...prev,
+                                                        metrics: { ...prev.metrics, roi: Number(editingChatMetricValue) || 0 }
+                                                    } : prev);
+                                                    setEditingChatMetric(null);
+                                                }}
+                                                className="text-green-600 hover:bg-green-50 rounded p-1"
+                                            >
+                                                <Check className="w-5 h-5" />
+                                            </button>
+                                            <button onClick={() => setEditingChatMetric(null)} className="text-brand-navy/60 hover:bg-brand-sea/10 rounded p-1">
+                                                <X className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <span className="text-4xl font-bold text-brand-sea">{chatAnalysis.metrics.roi.toFixed(1)}</span>
+                                            <span className="text-brand-navy/40 text-lg ml-1">/10</span>
+                                            <div className="w-40 bg-brand-sea/10 rounded-full h-2 mt-1">
+                                                <div className="bg-gradient-to-r from-brand-turquoise to-brand-sea rounded-full h-2 transition-all" style={{ width: `${chatAnalysis.metrics.roi * 10}%` }} />
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </>
@@ -853,6 +1008,50 @@ export function DocumentEditor({
                         </div>
                     </div>
                 </>
+            )}
+
+            {/* Unsaved Changes Warning Modal */}
+            {showUnsavedModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-brand-midnight/50 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="p-6">
+                            <div className="flex items-center gap-4 mb-4 text-amber-600">
+                                <div className="p-3 bg-amber-50 rounded-full">
+                                    <AlertCircle className="w-6 h-6" />
+                                </div>
+                                <h3 className="text-xl font-bold text-brand-midnight">Niezapisane zmiany</h3>
+                            </div>
+                            <p className="text-brand-navy/80 mb-6">
+                                Masz niezapisane zmiany w aktualnym dokumencie. Jeśli wyjdziesz z edytora bez zapisu, zmiany zostaną utracone. Czy na pewno chcesz opuścić edytor?
+                            </p>
+                            <div className="flex justify-end gap-3 flex-wrap">
+                                <button
+                                    onClick={() => setShowUnsavedModal(false)}
+                                    className="px-4 py-2 text-sm font-medium text-brand-navy hover:text-brand-midnight bg-brand-sea/5 hover:bg-brand-sea/10 border border-brand-sea/10 transition-colors rounded-lg"
+                                >
+                                    Dokończ edycję
+                                </button>
+                                <button
+                                    onClick={() => { setShowUnsavedModal(false); onBack(); }}
+                                    className="px-4 py-2 text-sm font-medium text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 transition-colors rounded-lg"
+                                >
+                                    Porzuć zmiany
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        const success = await handleSave();
+                                        if (success) {
+                                            setShowUnsavedModal(false);
+                                        }
+                                    }}
+                                    className="px-4 py-2 text-sm font-bold text-white bg-brand-sea hover:bg-brand-sea/90 transition-colors rounded-lg shadow-sm"
+                                >
+                                    Zapisz i kontynuuj
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
