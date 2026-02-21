@@ -2,15 +2,18 @@ import { useState, useEffect } from 'react';
 import { Trash2, Search, Plus, FileText, MessageSquare, Tag, X, Pencil, Loader2, Check } from 'lucide-react';
 import { getDocuments, deleteDocument, updateDocument } from '../../lib/docs';
 import type { DocumentBase } from '../../lib/docs';
-import { DocumentEditor } from './DocumentEditor';
+import { DocumentEditor, type DocumentEditorHandle } from './DocumentEditor';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { ChatsView } from './ChatsView';
 
 type Tab = 'docs' | 'chats';
 
-export function DocsView({ initialTag, onTagFilterCleared }: {
+export function DocsView({ initialTag, onTagFilterCleared, onUnsavedChanges, forceResetTrigger, editorRef }: {
     initialTag?: string;
     onTagFilterCleared?: () => void;
+    onUnsavedChanges?: (hasChanges: boolean) => void;
+    forceResetTrigger?: number;
+    editorRef?: React.MutableRefObject<DocumentEditorHandle | null>;
 }) {
     const [activeTab, setActiveTab] = useState<Tab>('docs');
     const [documents, setDocuments] = useState<DocumentBase[]>([]);
@@ -51,6 +54,15 @@ export function DocsView({ initialTag, onTagFilterCleared }: {
     useEffect(() => {
         fetchDocuments();
     }, []);
+
+    useEffect(() => {
+        if (forceResetTrigger && forceResetTrigger > 0) {
+            setIsEditing(false);
+            setSelectedDoc(null);
+            setOpenToChat(false);
+            setOpenToSessionId(null);
+        }
+    }, [forceResetTrigger]);
 
     const promptDelete = (e: React.MouseEvent, doc: DocumentBase) => {
         e.stopPropagation();
@@ -166,9 +178,11 @@ export function DocsView({ initialTag, onTagFilterCleared }: {
     if (isEditing || selectedDoc) {
         return (
             <DocumentEditor
+                editorRef={editorRef}
                 initialDoc={selectedDoc}
                 defaultTab={openToChat ? 'chat' : 'preview'}
                 defaultSessionId={openToSessionId ?? undefined}
+                onUnsavedChanges={onUnsavedChanges}
                 onBack={() => {
                     setIsEditing(false);
                     setSelectedDoc(null);
@@ -286,7 +300,10 @@ export function DocsView({ initialTag, onTagFilterCleared }: {
                                                 Nazwa dokumentu{sortIcon('name')}
                                             </button>
                                         </th>
-                                        <th scope="col" className="px-6 py-4 font-semibold">
+                                        <th scope="col" className="px-6 py-4 font-semibold w-[40%]">
+                                            TL;DR
+                                        </th>
+                                        <th scope="col" className="px-6 py-4 font-semibold w-[20%]">
                                             <button onClick={() => toggleSort('tags')} className="hover:text-brand-sea transition-colors">
                                                 Tagi{sortIcon('tags')}
                                             </button>
@@ -302,7 +319,7 @@ export function DocsView({ initialTag, onTagFilterCleared }: {
                                 <tbody>
                                     {isLoading ? (
                                         <tr>
-                                            <td colSpan={4} className="px-6 py-8 text-center text-brand-navy/60">
+                                            <td colSpan={5} className="px-6 py-8 text-center text-brand-navy/60">
                                                 <div className="flex justify-center items-center gap-2">
                                                     <div className="w-4 h-4 rounded-full bg-brand-sea/50 animate-ping" />
                                                     Ładowanie bazy wiedzy...
@@ -311,7 +328,7 @@ export function DocsView({ initialTag, onTagFilterCleared }: {
                                         </tr>
                                     ) : filteredDocs.length === 0 ? (
                                         <tr>
-                                            <td colSpan={4} className="px-6 py-12 text-center">
+                                            <td colSpan={5} className="px-6 py-12 text-center">
                                                 <div className="mx-auto w-12 h-12 bg-brand-sea/5 rounded-full flex items-center justify-center mb-3">
                                                     <FileText className="h-6 w-6 text-brand-sea/50" />
                                                 </div>
@@ -349,7 +366,10 @@ export function DocsView({ initialTag, onTagFilterCleared }: {
                                                         <span className="shrink-0 text-[10px] bg-brand-bordeaux/10 text-brand-bordeaux px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide">Firmowy</span>
                                                     )}
                                                 </td>
-                                                <td className="px-6 py-4">
+                                                <td className="px-6 py-4 text-brand-navy/80 text-[12px] leading-tight align-top">
+                                                    {doc.tldr ? <div className="whitespace-pre-wrap">{doc.tldr}</div> : <span className="text-brand-navy/30">—</span>}
+                                                </td>
+                                                <td className="px-6 py-4 align-top">
                                                     <div className="flex flex-wrap gap-1.5">
                                                         {(doc.tags ?? []).length > 0 ? (
                                                             (doc.tags ?? []).map((tag, i) => (

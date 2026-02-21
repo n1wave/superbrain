@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import mammoth from 'mammoth';
 import TurndownService from 'turndown';
 import {
@@ -18,15 +18,23 @@ import remarkGfm from 'remark-gfm';
 
 type ViewMode = 'edit' | 'preview' | 'chat';
 
+export interface DocumentEditorHandle {
+    save: () => Promise<boolean>;
+}
+
 export function DocumentEditor({
     onBack,
     onSaved,
+    onUnsavedChanges,
+    editorRef,
     initialDoc,
     defaultTab = 'preview',
     defaultSessionId,
 }: {
     onBack: () => void;
     onSaved: () => void;
+    onUnsavedChanges?: (hasChanges: boolean) => void;
+    editorRef?: React.MutableRefObject<DocumentEditorHandle | null>;
     initialDoc?: DocumentBase | null;
     defaultTab?: ViewMode;
     defaultSessionId?: string;
@@ -39,6 +47,7 @@ export function DocumentEditor({
     const [name, setName] = useState(initialDoc?.name || '');
     const [description] = useState(initialDoc?.description || '');
     const [content, setContent] = useState(initialDoc?.content || '');
+    const [isCompany, setIsCompany] = useState(initialDoc?.isCompany ?? false);
     const [isLoading, setIsLoading] = useState(false);
     const [viewMode, setViewMode] = useState<ViewMode>(defaultTab);
 
@@ -60,6 +69,31 @@ export function DocumentEditor({
     const [chatInput, setChatInput] = useState('');
     const [isChatLoading, setIsChatLoading] = useState(false);
     const [sessionsLoaded, setSessionsLoaded] = useState(false);
+
+    // ── Track unsaved changes ──
+    const hasUnsavedChanges = useMemo(() => {
+        if (!initialDoc) {
+            // New document: any content means unsaved changes
+            return name !== '' || description !== '' || content !== '' || file !== null;
+        }
+        // Existing document: compare fields
+        return name !== (initialDoc.name || '')
+            || description !== (initialDoc.description || '')
+            || content !== (initialDoc.content || '')
+            || isCompany !== (initialDoc.isCompany ?? false)
+            || documentType !== (initialDoc.documentType || '')
+            || mainTopic !== (initialDoc.mainTopic || '')
+            || tags !== (initialDoc.tags?.join(', ') || '')
+            || tldr !== (initialDoc.tldr || '')
+            || keyFindings !== (initialDoc.keyFindings?.join('\n') || '')
+            || usage !== (initialDoc.usage || '')
+            || actionItems !== (initialDoc.actionItems?.join('\n') || '')
+            || JSON.stringify(docMetrics || {}) !== JSON.stringify(initialDoc.docMetrics || {});
+    }, [initialDoc, name, description, content, file, isCompany, documentType, mainTopic, tags, tldr, keyFindings, usage, actionItems, docMetrics]);
+
+    useEffect(() => {
+        onUnsavedChanges?.(hasUnsavedChanges);
+    }, [hasUnsavedChanges, onUnsavedChanges]);
 
     // ── Chat analysis state ──
     const [chatAnalysis, setChatAnalysis] = useState<ChatAnalysis | null>(null);
@@ -162,8 +196,8 @@ export function DocumentEditor({
     };
 
     // ── Save document ──
-    const handleSave = async () => {
-        if (!content.trim()) { alert('Upewnij się, że dokument ma treść do zapisu.'); return; }
+    const handleSave = async (): Promise<boolean> => {
+        if (!content.trim()) { alert('Upewnij się, że dokument ma treść do zapisu.'); return false; }
         setIsLoading(true);
         try {
             const dataToSave = {
@@ -177,18 +211,44 @@ export function DocumentEditor({
                 keyFindings: keyFindings.split('\n').map(t => t.trim()).filter(Boolean),
                 usage,
                 actionItems: actionItems.split('\n').map(t => t.trim()).filter(Boolean),
+                isCompany,
                 ...(docMetrics ? { docMetrics } : {}),
             };
             if (initialDoc?.id) await updateDocument(initialDoc.id, dataToSave);
             else await saveDocument(dataToSave);
+
+            // Re-sync local state so hasUnsavedChanges returns false immediately
+            if (initialDoc) {
+                initialDoc.name = dataToSave.name;
+                initialDoc.description = dataToSave.description;
+                initialDoc.content = dataToSave.content;
+                initialDoc.isCompany = dataToSave.isCompany;
+                initialDoc.documentType = dataToSave.documentType;
+                initialDoc.mainTopic = dataToSave.mainTopic;
+                initialDoc.tags = dataToSave.tags;
+                initialDoc.tldr = dataToSave.tldr;
+                initialDoc.keyFindings = dataToSave.keyFindings;
+                initialDoc.usage = dataToSave.usage;
+                initialDoc.actionItems = dataToSave.actionItems;
+                initialDoc.docMetrics = dataToSave.docMetrics;
+            }
+
             onSaved();
+            return true;
         } catch (err) {
             console.error(err);
             alert('Nie udało się zapisać dokumentu.');
+            return false;
         } finally {
             setIsLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (editorRef) {
+            editorRef.current = { save: handleSave };
+        }
+    }, [editorRef, handleSave]);
 
     // ── Start new chat session ──
     const handleNewSession = async () => {
@@ -304,6 +364,16 @@ export function DocumentEditor({
                 <h2 className="text-xl font-bold tracking-tight text-brand-midnight flex-1 min-w-0 truncate">
                     {initialDoc ? 'Edycja dokumentu' : 'Dodaj nowy dokument'}
                 </h2>
+                {/* Dokument firmowy checkbox */}
+                <label className="flex items-center gap-1.5 cursor-pointer select-none shrink-0">
+                    <input
+                        type="checkbox"
+                        checked={isCompany}
+                        onChange={e => setIsCompany(e.target.checked)}
+                        className="w-4 h-4 rounded border-brand-sea/30 text-brand-sea accent-brand-sea cursor-pointer"
+                    />
+                    <span className="text-sm text-brand-midnight font-medium whitespace-nowrap">Dok. firmowy</span>
+                </label>
                 <input
                     value={name}
                     onChange={e => setName(e.target.value)}
